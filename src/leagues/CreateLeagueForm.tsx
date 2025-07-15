@@ -18,12 +18,11 @@ import { v4 as uuidv4 } from 'uuid';
 
 const supportedSports = ['Ping Pong', 'Foosball', 'Pool'];
 
-const defaultSettings: Omit<LeagueSettings, 'id' | 'name' | 'adminId' | 'members' | 'createdAt' | 'joinPasscode' | 'joinDeadline' | 'joinType' | 'maxMembers' | 'sports' | 'visibility'> = {
-  scoringFormat: 'first to 11',
+const defaultSettings: Omit<LeagueSettings, 'id' | 'name' | 'adminId' | 'members' | 'createdAt' | 'joinPasscode' | 'joinDeadline' | 'joinType' | 'maxMembers' | 'sports' | 'visibility' | 'sportsSettings'> = {
   matchVerification: 'manual',
   rankingSystem: 'elo',
   scheduleType: 'open',
-  tournamentMode: 'none',
+  tournamentMode: 'none'
 };
 
 const CreateLeagueForm: React.FC = () => {
@@ -85,7 +84,6 @@ const CreateLeagueForm: React.FC = () => {
       maxMembers: maxMembers === '' ? 1000000 : Number(maxMembers),
       sports,
       // Gameplay Settings (auto-set)
-      scoringFormat: defaultSettings.scoringFormat,
       matchVerification: defaultSettings.matchVerification,
       rankingSystem: defaultSettings.rankingSystem,
       scheduleType: defaultSettings.scheduleType,

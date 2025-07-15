@@ -1,36 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { 
-  Box, 
-  Typography, 
-  Paper, 
-  Button, 
-  Alert, 
-  CircularProgress, 
-  Card,
-  CardContent,
-  Avatar,
-  Chip,
-  TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Switch,
-  FormControlLabel,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  IconButton,
-  Badge
+import { Box, Typography, Paper,  Button, Alert, CircularProgress, Card, CardContent, Avatar, Chip, TextField, Badge,
+  FormControl, InputLabel, Select, MenuItem, Switch, FormControlLabel, Accordion, AccordionSummary, AccordionDetails, IconButton
 } from '@mui/material';
 import { 
   ExpandMore as ExpandMoreIcon,
   Edit as EditIcon,
   Save as SaveIcon,
   Cancel as CancelIcon,
-  //Add as AddIcon,
-  //Delete as DeleteIcon,
   Settings as SettingsIcon,
   People as PeopleIcon,
   SportsEsports as SportsIcon,
@@ -50,10 +27,13 @@ import {
   query,
   where,
   getDocs,
-  deleteDoc
+  deleteDoc,
 } from 'firebase/firestore';
 import { type LeagueSettings as LeagueSettingsType } from './league';
 import { sendSystemMessage } from '../Inbox';
+import type { LeagueSettings, SportSettings, SpikeballSettings, PingPongSettings, CustomSportSettings } from './league';
+
+
 
 interface JoinRequest {
   id: string;
@@ -61,7 +41,7 @@ interface JoinRequest {
   playerName: string;
   playerEmail: string;
   requestedAt: any;
-  leagueId: string;
+  LeagueId: string;
 }
 
 interface EditingSection {
@@ -74,12 +54,13 @@ interface EditingSection {
 }
 
 const LeagueSettings: React.FC = () => {
-  const { leagueId } = useParams<{ leagueId: string }>();
+  console.log('LeagueSettings: component rendered');
+  const { LeagueId } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
-  
   const [league, setLeague] = useState<LeagueSettingsType | null>(null);
   const [editedLeague, setEditedLeague] = useState<LeagueSettingsType | null>(null);
+  const [editedSportsSettings, setEditedSportsSettings] = useState<SportSettings[]>(editedLeague?.sports || []);
   const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -92,14 +73,23 @@ const LeagueSettings: React.FC = () => {
     customization: false,
     rankingSettings: false
   });
+  const availableSports: SportSettings['type'][] = [
+    'Ping Pong',
+    'Spikeball',
+    'Custom'
+  ];
+
 
   useEffect(() => {
-    if (!leagueId || !user) return;
+    console.log('LeagueId:', LeagueId);
+    console.log('user:', user);
+    console.log('LeagueSettings: useEffect called');
+    if (!LeagueId || !user) return(setError('Invalid league or user.'));
     
     const fetchData = async () => {
       try {
         // Fetch league data
-        const leagueDoc = await getDoc(doc(db, 'leagues', leagueId));
+        const leagueDoc = await getDoc(doc(db, 'leagues', LeagueId));
         if (!leagueDoc.exists()) {
           setError('League not found.');
           return;
@@ -129,7 +119,7 @@ const LeagueSettings: React.FC = () => {
         const requests: JoinRequest[] = [];
         for (const doc of requestsSnap.docs) {
           const data = doc.data();
-          if (data.actionUrl?.includes(leagueId)) {
+          if (data.actionUrl?.includes(LeagueId)) {
             // Extract player info from message content or fetch from users collection
             requests.push({
               id: doc.id,
@@ -137,7 +127,7 @@ const LeagueSettings: React.FC = () => {
               playerName: data.content.split(' ')[0] || 'Unknown Player',
               playerEmail: '',
               requestedAt: data.createdAt,
-              leagueId: leagueId
+              LeagueId: LeagueId
             });
           }
         }
@@ -152,14 +142,14 @@ const LeagueSettings: React.FC = () => {
     };
     
     fetchData();
-  }, [leagueId, user]);
+  }, [LeagueId, user]);
 
   const handleApproveRequest = async (request: JoinRequest) => {
     if (!league) return;
     
     try {
       // Add user to league members
-      await updateDoc(doc(db, 'leagues', leagueId!), {
+      await updateDoc(doc(db, 'leagues', LeagueId!), {
         members: arrayUnion(request.playerId)
       });
       
@@ -170,7 +160,7 @@ const LeagueSettings: React.FC = () => {
         subject: 'League Join Request Approved',
         content: `Your request to join "${league.name}" has been approved! Welcome to the league.`,
         actionLabel: 'View League',
-        actionUrl: `/leagues/${leagueId}`
+        actionUrl: `/leagues/${LeagueId}`
 
       });
       
@@ -219,11 +209,11 @@ const LeagueSettings: React.FC = () => {
   };
 
   const handleSaveSection = async (section: keyof EditingSection) => {
-    if (!editedLeague || !leagueId) return;
+    if (!editedLeague || !LeagueId) return;
     
     try {
       // Only update the changed fields, not the whole object
-      await updateDoc(doc(db, 'leagues', leagueId), { ...editedLeague });
+      await updateDoc(doc(db, 'leagues', LeagueId), { ...editedLeague });
       setLeague(editedLeague);
       setEditing(prev => ({ ...prev, [section]: false }));
       setSuccess('Settings updated successfully!');
@@ -234,8 +224,98 @@ const LeagueSettings: React.FC = () => {
   };
 
   const handleCancelEdit = (section: keyof EditingSection) => {
-    setEditedLeague(league);
-    setEditing(prev => ({ ...prev, [section]: false }));
+      setEditedLeague(league);
+      setEditing(prev => ({ ...prev, [section]: false }));
+    };
+    const handleAddSport = () => {
+    const unused = availableSports.find(
+      s => !editedSportsSettings.some(ss => ss.type === s)
+    );
+    if (unused) {
+      let newSport: SportSettings;
+      if (unused === 'Ping Pong') {
+        newSport = {
+          id: crypto.randomUUID(),
+          type: 'Ping Pong',
+          displayName: 'Ping Pong',
+          trackedValue: 'points',
+          trackSets: false,
+          winBy: 2,
+          trackIndividualPoints: false,
+          trackMistakes: false,
+          maxSets: 5,
+          pointsTo: 21,
+          serveRotation: 2,
+          adjustableSettings: true,
+        } as PingPongSettings;
+      } else if (unused === 'Spikeball') {
+        newSport = {
+          id: crypto.randomUUID(),
+          type: 'Spikeball',
+          displayName: 'Spikeball',
+          trackedValue: 'points',
+          winBy: 2,
+          trackPoints: true,
+          trackMistakes: false,
+          pointsTo: 21,
+          serveRotation: 5,
+          sixFootRule: true,
+          adjustableSettings: true,
+        } as SpikeballSettings;
+      } else {
+        newSport = {
+          id: crypto.randomUUID(),
+          type: 'Custom',
+          displayName: 'Custom',
+          adjustableSettings: true,
+          scoringRules: {
+            label: 'Custom Scoring',
+            pointsPerWin: 1,
+            maxScore: 10
+          }
+        } as CustomSportSettings;
+      }
+      setEditedSportsSettings([...editedSportsSettings, newSport]);
+    }
+  };
+
+  // Handler to remove a sport
+  const handleRemoveSport = (id: string) => {
+    setEditedSportsSettings(editedSportsSettings.filter(ss => ss.id !== id));
+  };
+
+  // Handler to update a sport's settings
+  const handleSportSettingChange = (id: string, changes: Partial<SportSettings>) => {
+    setEditedSportsSettings(editedSportsSettings.map(ss => {
+      if (ss.id !== id) return ss;
+      // Ensure all required boolean fields are set (not undefined)
+      let updated = { ...ss, ...changes };
+      if (ss.type === 'Ping Pong') {
+        // PingPongSettings: ensure trackSets is boolean and always defined
+        if (typeof (updated as any).trackSets !== 'boolean') {
+          updated = { ...updated, trackSets: false };
+        }
+      }
+      if (ss.type === 'Spikeball') {
+        // SpikeballSettings: ensure sixFootRule is boolean and always defined
+        if (typeof (updated as any).sixFootRule !== 'boolean') {
+          updated = { ...updated, sixFootRule: false };
+        }
+      }
+      return updated as SportSettings;
+    }));
+  };
+
+  // When saving, update editedLeague.sports
+  const handleSaveGameplaySettings = async () => {
+    if (!editedLeague || !LeagueId) return;
+    await updateDoc(doc(db, 'leagues', LeagueId), {
+      ...editedLeague,
+      sports: editedSportsSettings
+    });
+    setLeague({ ...editedLeague, sports: editedSportsSettings });
+    setEditing(prev => ({ ...prev, gameplaySettings: false }));
+    setSuccess('Gameplay settings updated!');
   };
 
   if (loading) return <Box display="flex" justifyContent="center" mt={8}><CircularProgress /></Box>;
@@ -476,7 +556,7 @@ const LeagueSettings: React.FC = () => {
                 <Box display="flex" gap={1}>
                   {editing.gameplaySettings ? (
                     <>
-                      <IconButton onClick={() => handleSaveSection('gameplaySettings')} color="primary">
+                      <IconButton onClick={handleSaveGameplaySettings} color="primary">
                         <SaveIcon />
                       </IconButton>
                       <IconButton onClick={() => handleCancelEdit('gameplaySettings')} color="secondary">
@@ -484,78 +564,80 @@ const LeagueSettings: React.FC = () => {
                       </IconButton>
                     </>
                   ) : (
-                    <IconButton onClick={() => handleEditToggle('gameplaySettings')}>
+                    <IconButton onClick={() => setEditing(prev => ({ ...prev, gameplaySettings: true }))}>
                       <EditIcon />
                     </IconButton>
                   )}
                 </Box>
               </Box>
-              
+
               {editing.gameplaySettings ? (
                 <Box display="flex" flexDirection="column" gap={2}>
-                  <FormControl fullWidth>
-                    <InputLabel>Sports</InputLabel>
-                    <Select
-                      multiple
-                      value={editedLeague.sports}
-                      onChange={(e) => setEditedLeague({...editedLeague, sports: e.target.value as string[]})}
-                    >
-                      <MenuItem value="Ping Pong">Ping Pong</MenuItem>
-                      <MenuItem value="Foosball">Foosball</MenuItem>
-                      <MenuItem value="Pool">Pool</MenuItem>
-                      <MenuItem value="Air Hockey">Air Hockey</MenuItem>
-                      <MenuItem value="Darts">Darts</MenuItem>
-                      <MenuItem value="Chess">Chess</MenuItem>
-                    </Select>
-                  </FormControl>
-                  
-                  <TextField
-                    label="Scoring Format"
-                    value={editedLeague.scoringFormat}
-                    onChange={(e) => setEditedLeague({...editedLeague, scoringFormat: e.target.value})}
-                    placeholder="e.g., 'First to 11', 'Best of 3'"
-                  />
-                  
-                  <FormControl fullWidth>
-                    <InputLabel>Match Verification</InputLabel>
-                    <Select
-                      value={editedLeague.matchVerification}
-                      onChange={(e) => setEditedLeague({...editedLeague, matchVerification: e.target.value as 'manual' | 'automatic' | 'both-confirm'})}
-                    >
-                      <MenuItem value="manual">Manual - Admin verifies results</MenuItem>
-                      <MenuItem value="automatic">Automatic - Results auto-approved</MenuItem>
-                      <MenuItem value="both-confirm">Both Confirm - Both players must confirm</MenuItem>
-                    </Select>
-                  </FormControl>
-                  
-                  <TextField
-                    label="Match Frequency Cap (per week)"
-                    type="number"
-                    value={editedLeague.matchFrequencyCap || ''}
-                    onChange={(e) => setEditedLeague({...editedLeague, matchFrequencyCap: e.target.value ? parseInt(e.target.value) : undefined})}
-                    placeholder="Leave empty for no limit"
-                  />
-                  
-                  <TextField
-                    label="Match Expiration (hours)"
-                    type="number"
-                    value={editedLeague.matchExpirationHours || ''}
-                    onChange={(e) => setEditedLeague({...editedLeague, matchExpirationHours: e.target.value ? parseInt(e.target.value) : undefined})}
-                    placeholder="Hours before unconfirmed matches expire"
-                  />
+                  {editedSportsSettings.map((ss) => (
+                    <Accordion key={ss.type} sx={{ bgcolor: '#f5f5f5' }}>
+                      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                        <Typography>{ss.type}</Typography>
+                        <Button
+                          color="error"
+                          size="small"
+                          onClick={e => {
+                            e.stopPropagation();
+                            handleRemoveSport(ss.id);
+                          }}
+                          sx={{ ml: 2 }}
+                        >
+                          Remove
+                        </Button>
+                      </AccordionSummary>
+                      <AccordionDetails>
+                        {/* Example: Ping Pong settings */}
+                        {ss.type === 'Ping Pong' && (
+                          <Box display="flex" gap={2}>
+                            <TextField
+                              label="Points To"
+                              type="number"
+                              value={ss.pointsTo || ''}
+                              onChange={e => handleSportSettingChange(ss.id, { pointsTo: parseInt(e.target.value) })}
+                            />
+                            <TextField
+                              label="Win By"
+                              type="number"
+                              value={ss.winBy || ''}
+                              onChange={e => handleSportSettingChange(ss.id, { winBy: parseInt(e.target.value) })}
+                            />
+                            {'trackSets' in ss && (
+                              <FormControlLabel
+                                control={
+                                  <Switch
+                                    checked={!!ss.trackSets}
+                                    onChange={e => handleSportSettingChange(ss.id, { trackSets: e.target.checked })}
+                                  />
+                                }
+                                label="Track Sets"
+                              />
+                            )}
+                          </Box>
+                        )}
+                        {/* Add more sport-specific settings here */}
+                      </AccordionDetails>
+                    </Accordion>
+                  ))}
+                  <Button
+                    variant="outlined"
+                    onClick={handleAddSport}
+                    disabled={editedSportsSettings.length >= availableSports.length}
+                  >
+                    Add Sport
+                  </Button>
                 </Box>
               ) : (
                 <Box display="flex" flexDirection="column" gap={1}>
                   <Typography><strong>Sports:</strong></Typography>
                   <Box display="flex" gap={1} flexWrap="wrap" mb={1}>
-                    {league.sports.map(sport => (
-                      <Chip key={sport} label={sport} />
+                    {league.sports?.map((ss: SportSettings) => (
+                      <Chip key={ss.id} label={ss.id} />
                     ))}
                   </Box>
-                  <Typography><strong>Scoring Format:</strong> {league.scoringFormat}</Typography>
-                  <Typography><strong>Match Verification:</strong> {league.matchVerification}</Typography>
-                  <Typography><strong>Match Frequency Cap:</strong> {league.matchFrequencyCap || 'Unlimited'} per week</Typography>
-                  <Typography><strong>Match Expiration:</strong> {league.matchExpirationHours || 'Never'} hours</Typography>
                 </Box>
               )}
             </Box>
@@ -620,18 +702,6 @@ const LeagueSettings: React.FC = () => {
                   
                   {editedLeague.rankingSystem === 'points' && (
                     <Box display="flex" gap={2}>
-                      <TextField
-                        label="Points per Win"
-                        type="number"
-                        value={editedLeague.pointsPerWin || ''}
-                        onChange={(e) => setEditedLeague({...editedLeague, pointsPerWin: e.target.value ? parseInt(e.target.value) : undefined})}
-                      />
-                      <TextField
-                        label="Points per Tie"
-                        type="number"
-                        value={editedLeague.pointsPerTie || ''}
-                        onChange={(e) => setEditedLeague({...editedLeague, pointsPerTie: e.target.value ? parseInt(e.target.value) : undefined})}
-                      />
                     </Box>
                   )}
                   
@@ -651,8 +721,6 @@ const LeagueSettings: React.FC = () => {
                   <Typography><strong>Schedule Type:</strong> {league.scheduleType}</Typography>
                   {league.rankingSystem === 'points' && (
                     <>
-                      <Typography><strong>Points per Win:</strong> {league.pointsPerWin || 'N/A'}</Typography>
-                      <Typography><strong>Points per Tie:</strong> {league.pointsPerTie || 'N/A'}</Typography>
                     </>
                   )}
                   <Typography><strong>Reset Stats Each Season:</strong> {league.resetStatsEachSeason ? 'Yes' : 'No'}</Typography>
@@ -829,7 +897,7 @@ const LeagueSettings: React.FC = () => {
         </Button>
         <Button 
           variant="contained" 
-          onClick={() => navigate(`/leagues/${leagueId}`)}
+          onClick={() => navigate(`/leagues/${LeagueId}`)}
           size="large"
         >
           View League

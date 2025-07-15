@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { collection, getDocs } from 'firebase/firestore';
-import { db } from './Backend/firebase';
+import { db } from '../Backend/firebase';
 import { Typography, Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Select, MenuItem, FormControl, InputLabel, CircularProgress, Button } from '@mui/material';
 import { useLocation } from 'react-router-dom';
-import { InternalBox } from './Backend/InternalBox';
+import { InternalBox } from '../Backend/InternalBox';
 
 interface PlayerStats {
   uid: string;

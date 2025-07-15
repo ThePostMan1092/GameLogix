@@ -8,7 +8,6 @@ import AddCircleIcon from '@mui/icons-material/AddCircle';
 import AccountCircleRoundedIcon from '@mui/icons-material/AccountCircleRounded';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from './Backend/firebase';
-import SettingsIcon from '@mui/icons-material/Settings';
 
 //making sidebar layout
 interface MainLayoutProps {
@@ -151,7 +150,7 @@ const Login = React.lazy(() => import('./users/Login'));
 const Register = React.lazy(() => import('./users/Register'));
 const Dashboard = React.lazy(() => import('./Dashboard'));
 const RecordGame = React.lazy(() => import('./matches/RecordGame'));
-const Scoreboard = React.lazy(() => import('./Scoreboard'));
+const Scoreboard = React.lazy(() => import('./matches/Scoreboard'));
 const ScheduleGame = React.lazy(() => import('./matches/ScheduleGame'));
 const Home = React.lazy(() => import('./Home'));
 const CreateLeagueForm = React.lazy(() => import('./leagues/CreateLeagueForm'));
@@ -159,6 +158,9 @@ const JoinLeague = React.lazy(() => import('./leagues/JoinLeague'));
 const NewLeague = React.lazy(() => import('./leagues/NewLeague'));
 const Inbox = React.lazy(() => import('./Inbox'));
 const LeagueSettings = React.lazy(() => import('./leagues/leagueSettings'));
+const LeagueLayout = React.lazy(() => import('./leagues/LeagueLayout'));
+const NewTournament = React.lazy(() => import('./tournaments/NewTourny'));
+
 /*const Scoreboards = React.lazy(() => import('./Scoreboards'));
 const TournamentMaker = React.lazy(() => import('./TournamentMaker'));*/
   
@@ -233,20 +235,19 @@ const LeftSidebar: React.FC = () => {
           <MailIcon color="secondary" />
         </Badge>
       </Box>
-      <Box flex={1}>
-        <Divider color="text.secondary" variant="middle" />
-        <Box display="flex" justifyContent="space-between" alignItems="center" my={1}>
-          <Typography variant="h6" fontWeight={700} color="text.primary">
-            Leagues
-          </Typography>
-          <Badge
-            color="primary"
-            onClick={() => navigate('/leagues/new')}
-          >
-            <AddCircleIcon color="secondary" />
-          </Badge>
-        </Box>
-        <Box my={1}>
+      <Divider color="text.secondary" variant="middle" />
+      <Box display="flex" justifyContent="space-between" alignItems="center" my={1}>
+        <Typography variant="h6" fontWeight={700} color="text.primary">
+          Leagues
+        </Typography>
+        <Badge
+          color="primary"
+          onClick={() => navigate('/leagues/new')}
+        >
+          <AddCircleIcon color="secondary" />
+        </Badge>
+      </Box>
+        <Box mb={5}>
           {userLeagues.length === 0 ? (
             <Box display="flex" flexDirection="column" gap={1}>
               <Button
@@ -274,13 +275,22 @@ const LeftSidebar: React.FC = () => {
                 <Box key={league.id} sx={{ p: 2, border: '1px solid #A7A29C', borderRadius: 2, bgcolor: 'background.paper', minWidth: 220 }}>
                   <Grid container spacing={2} alignItems="center">
                     <Grid>
-                      <IconButton color="secondary" onClick={() => navigate(`/leagues/leagueSettings`)} size="small">
-                        <SettingsIcon />
-                      </IconButton>
-                    </Grid>
-                    <Grid>
-                      <Typography variant="subtitle1" fontWeight={700}>{league.name}</Typography>
-                      <Typography variant="body2" color="text.secondary">Sports: {league.sports?.join(', ')}</Typography>
+                      <Button
+                        component={Link as any}
+                        to={`/League/${league.id}/Scoreboard`}
+                        sx={{
+                          textTransform: 'none',
+                          p: 0,
+                          minWidth: 'unset',
+                          '&.active': {
+                            bgcolor: 'primary.main',
+                            color: 'primary.contrastText',
+                          },
+                        }}
+                      >
+                        <Typography variant="subtitle1" fontWeight={700}>{league.name}</Typography>
+                        <Typography variant="body2" color="text.secondary">Sports: {league.sports?.join(', ')}</Typography>
+                      </Button>
                     </Grid>
                   </Grid>
                   </Box>
@@ -288,7 +298,19 @@ const LeftSidebar: React.FC = () => {
             </Box>
           )}
         </Box>
-        <Divider color="text.secondary" textAlign="left" sx={{ mt: 2, mb: 1 }}>Tournaments</Divider>
+        <Box>
+        <Divider color="text.secondary" variant="middle" />
+        <Box display="flex" justifyContent="space-between" alignItems="center" my={1}>
+          <Typography variant="h6" fontWeight={700} color="text.primary">
+            Tournaments
+          </Typography>
+          <Badge
+            color="primary"
+            onClick={() => navigate('/tournaments/new')}
+          >
+            <AddCircleIcon color="secondary" />
+          </Badge>
+        </Box>
         <Box mb={4}>
           {userTournaments.length === 0 ? (
             <Typography variant="body2" color="text.secondary">No tournaments joined yet.</Typography>
@@ -306,33 +328,25 @@ const LeftSidebar: React.FC = () => {
           )}
         </Box>
       </Box>
-      <Box flex={1}>
-        <Button fullWidth color="inherit" sx={{ justifyContent: 'flex-start', mb: 1 }} onClick={() => navigate('/schedule')}>Schedule Game</Button>
-        <Button fullWidth color="inherit" sx={{ justifyContent: 'flex-start', mb: 1 }} onClick={() => navigate('/record')}>Record Game</Button>
-        <Button fullWidth color="inherit" sx={{ justifyContent: 'flex-start', mb: 1 }} onClick={() => navigate('/scoreboard')}>Scoreboard</Button>
-        {/* Add more navigation as needed */}
-      </Box>
-      <Box mt={3}>
-        {user ? (
-          <Box mb={3} display="flex" alignItems="center" gap={2}>
-            <Button fullWidth onClick={() => navigate('/dashboard')}>
-              <Avatar sx={{ bgcolor: 'primary.main', width: 56, height: 56 }}>
-                <AccountCircleRoundedIcon fontSize="large" />
-              </Avatar>
-              <Box pl={2} alignItems="Left">
+      <Divider color="text.secondary" variant="middle" />
+      {user ? (
+        <Box justifyContent="space-between" alignItems="left" my={1}>
+          <Button fullWidth sx={{ display: 'flex' }} onClick={() => navigate('/dashboard')}>
+            <AccountCircleRoundedIcon fontSize="large" color="secondary" />
+              <Box pl={2} justifyContent="left">
                 <Typography variant="h5" fontWeight={500} color="text.primary">
                   {user ? user.displayName || user.email : 'Guest'}
                 </Typography>
                 {user && <Typography variant="caption" color="text.secondary">{user.email}</Typography>}
               </Box>
-            </Button>
-            
-          </Box>
-        ) : (
-          <Button variant="contained" color="primary" fullWidth onClick={() => navigate('/login')}>Sign In</Button>
-        )}
+          </Button> 
+        </Box>
+      ) : (
+        <Button variant="contained" color="primary" fullWidth onClick={() => navigate('/login')}>Sign In</Button>
+      )}
+      <Box flex={1}>
+        {/* Add more navigation as needed */}
       </Box>
-
     </Box>
   );
 };
@@ -356,7 +370,32 @@ function DashboardWrapper({ children }: { children: React.ReactNode }) {
       {children}
     </Box>
   );
-}
+};
+
+import type { User } from 'firebase/auth';
+
+const globalRoutes = (user: User | null) => [
+  <Route path="/dashboard" element={<ProtectedRoute><DashboardWrapper><Dashboard /></DashboardWrapper></ProtectedRoute>} />,
+  <Route path="/Home" element={<ProtectedRoute><Home /></ProtectedRoute>} />,
+  <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <Login />} />,
+  <Route path="/register" element={user ? <Navigate to="/dashboard" replace /> : <Register />} />,
+  <Route path="/leagues/create" element={<ProtectedRoute><CreateLeagueForm /></ProtectedRoute>} />,
+  <Route path="/leagues/join" element={<ProtectedRoute><JoinLeague /></ProtectedRoute>} />,
+  <Route path="/leagues/new" element={<ProtectedRoute><NewLeague /></ProtectedRoute>} />,
+  <Route path="/Inbox" element={<ProtectedRoute><Inbox /></ProtectedRoute>} />,
+  <Route path="/tournaments/new" element={<ProtectedRoute><NewTournament /></ProtectedRoute>} />,
+];
+
+const LeagueRoutes = () => (
+  <Route path="/League/:LeagueId" element={<LeagueLayout />}>
+    <Route path="schedule" element={<ProtectedRoute><ScheduleGame /></ProtectedRoute>} />
+    <Route path="record" element={<ProtectedRoute><RecordGame /></ProtectedRoute>} />
+    <Route path="scoreboard" element={<ProtectedRoute><Scoreboard /></ProtectedRoute>} />
+    <Route path="leagueSettings" element={<ProtectedRoute><LeagueSettings /></ProtectedRoute>} />
+  </Route>
+)
+
+ 
 
 function AppContent() {
   const { user } = useAuth();
@@ -365,25 +404,24 @@ function AppContent() {
       <Container sx={{ mt: 4, mb: 4, maxWidth: 'lg' }}>
         <Suspense fallback={<Box display="flex" justifyContent="center" mt={8}><CircularProgress /></Box>}>
           <Routes>
-            <Route path="/Home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
-            <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <Login />} />
-            <Route path="/register" element={user ? <Navigate to="/dashboard" replace /> : <Register />} />
-            <Route path="/dashboard" element={<ProtectedRoute><DashboardWrapper><Dashboard /></DashboardWrapper></ProtectedRoute>} />
-            <Route path="/schedule" element={<ProtectedRoute><ScheduleGame /></ProtectedRoute>} />
-            <Route path="/record" element={<ProtectedRoute><RecordGame /></ProtectedRoute>} />
-            <Route path="/scoreboard" element={<ProtectedRoute><Scoreboard /></ProtectedRoute>} />
-            <Route path="/leagues/create" element={<ProtectedRoute><CreateLeagueForm /></ProtectedRoute>} />
-            <Route path="/leagues/join" element={<ProtectedRoute><JoinLeague /></ProtectedRoute>} />
-            <Route path="/leagues/new" element={<ProtectedRoute><NewLeague /></ProtectedRoute>} />
-            <Route path="/Inbox" element={<ProtectedRoute><Inbox /></ProtectedRoute>} />
-            <Route path="/leagues/:leagueId/leagueSettings" element={<ProtectedRoute><LeagueSettings /></ProtectedRoute>} />
-            {/*<Route path="/tournament" element={<ProtectedRoute><TournamentMaker /></ProtectedRoute>} />*/}
+            {globalRoutes(user)}
+            {LeagueRoutes()}
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
       </Container>
     </MainLayout>
   );
 }
+
+// NotFound page fallback
+const NotFound: React.FC = () => (
+  <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight="60vh">
+    <Typography variant="h2" color="primary" gutterBottom>404</Typography>
+    <Typography variant="h5" color="text.secondary" gutterBottom>Page Not Found</Typography>
+    <Button variant="contained" color="primary" component={Link} to="/dashboard">Go to Dashboard</Button>
+  </Box>
+);
 
 // Note: Remember to add top padding to the main content if needed to account for the fixed AppBar height.
 export default App;
