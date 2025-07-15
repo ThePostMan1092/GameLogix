@@ -13,7 +13,7 @@ import { type LeagueSettings } from './league';
 import { useAuth } from '../Backend/AuthProvider';
 import { InternalBox } from '../Backend/InternalBox';
 import { db } from '../Backend/firebase';
-import { addDoc, collection, setDoc, doc, Timestamp } from 'firebase/firestore';
+import { setDoc, doc, Timestamp } from 'firebase/firestore';
 import { v4 as uuidv4 } from 'uuid';
 
 const supportedSports = ['Ping Pong', 'Foosball', 'Pool'];

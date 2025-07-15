@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Typography, Box, Grid, Card, CardContent, LinearProgress, Chip, Avatar, Button, Link } from '@mui/material';
+import { Typography, Box, Grid, Card, CardContent, LinearProgress, Chip, Avatar, Button} from '@mui/material';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import SportsTennisIcon from '@mui/icons-material/SportsTennis';
 import SportsSoccerIcon from '@mui/icons-material/SportsSoccer';
@@ -32,6 +32,8 @@ const Dashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [userLeagues, setUserLeagues] = useState<any[]>([]);
   const [adminNames, setAdminNames] = useState<Record<string, string>>({});
+  console.log('userLeagues', userLeagues);
+  console.log(adminNames);
 
   const navigate = useNavigate();
 

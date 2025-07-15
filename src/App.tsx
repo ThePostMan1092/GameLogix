@@ -1,16 +1,11 @@
 import React, { Suspense, useEffect, useState } from 'react';
 import { AuthProvider, useAuth } from './Backend/AuthProvider';
-import { Routes, Route, Link, Navigate, useNavigate, useLocation } from 'react-router-dom';
-import { AppBar, Divider, Badge, Typography, Button, Container, Box, CssBaseline, ThemeProvider, createTheme, CardContent, Avatar, TextField, Dialog, DialogTitle, DialogContent, DialogActions, IconButton, CircularProgress } from '@mui/material';
+import { Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom';
+import { Divider, Badge, Typography, Button, Container, Box, CssBaseline, ThemeProvider, createTheme, Avatar, IconButton, CircularProgress } from '@mui/material';
 import Grid from '@mui/material/Grid';
-import SportsTennisIcon from '@mui/icons-material/SportsTennis';
-import SportsEsportsIcon from '@mui/icons-material/SportsEsports';
 import MailIcon from '@mui/icons-material/Mail';
+import AddCircleIcon from '@mui/icons-material/AddCircle';
 import AccountCircleRoundedIcon from '@mui/icons-material/AccountCircleRounded';
-import AddIcon from '@mui/icons-material/PersonAdd';
-import { type Player, getPlayers, addPlayer, getCurrentUser, setCurrentUserId } from './users/playerDb';
-import { v4 as uuidv4 } from 'uuid';
-import { InternalBox } from './Backend/InternalBox';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from './Backend/firebase';
 import SettingsIcon from '@mui/icons-material/Settings';
@@ -161,6 +156,7 @@ const ScheduleGame = React.lazy(() => import('./matches/ScheduleGame'));
 const Home = React.lazy(() => import('./Home'));
 const CreateLeagueForm = React.lazy(() => import('./leagues/CreateLeagueForm'));
 const JoinLeague = React.lazy(() => import('./leagues/JoinLeague'));
+const NewLeague = React.lazy(() => import('./leagues/NewLeague'));
 const Inbox = React.lazy(() => import('./Inbox'));
 const LeagueSettings = React.lazy(() => import('./leagues/leagueSettings'));
 /*const Scoreboards = React.lazy(() => import('./Scoreboards'));
@@ -233,13 +229,23 @@ const LeftSidebar: React.FC = () => {
           color="primary"
           badgeContent={unreadMessages}
           onClick={() => navigate('/inbox')}
-          sx={{ cursor: 'pointer' }}
         >
           <MailIcon color="secondary" />
         </Badge>
       </Box>
       <Box flex={1}>
-        <Divider color="text.secondary" textAlign="left">Leagues</Divider>
+        <Divider color="text.secondary" variant="middle" />
+        <Box display="flex" justifyContent="space-between" alignItems="center" my={1}>
+          <Typography variant="h6" fontWeight={700} color="text.primary">
+            Leagues
+          </Typography>
+          <Badge
+            color="primary"
+            onClick={() => navigate('/leagues/new')}
+          >
+            <AddCircleIcon color="secondary" />
+          </Badge>
+        </Box>
         <Box my={1}>
           {userLeagues.length === 0 ? (
             <Box display="flex" flexDirection="column" gap={1}>
@@ -368,6 +374,7 @@ function AppContent() {
             <Route path="/scoreboard" element={<ProtectedRoute><Scoreboard /></ProtectedRoute>} />
             <Route path="/leagues/create" element={<ProtectedRoute><CreateLeagueForm /></ProtectedRoute>} />
             <Route path="/leagues/join" element={<ProtectedRoute><JoinLeague /></ProtectedRoute>} />
+            <Route path="/leagues/new" element={<ProtectedRoute><NewLeague /></ProtectedRoute>} />
             <Route path="/Inbox" element={<ProtectedRoute><Inbox /></ProtectedRoute>} />
             <Route path="/leagues/:leagueId/leagueSettings" element={<ProtectedRoute><LeagueSettings /></ProtectedRoute>} />
             {/*<Route path="/tournament" element={<ProtectedRoute><TournamentMaker /></ProtectedRoute>} />*/}

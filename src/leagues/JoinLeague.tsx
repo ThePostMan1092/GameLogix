@@ -106,6 +106,9 @@ const JoinLeague: React.FC = () => {
   return (
     <InternalBox sx={{ p: 4, maxWidth: 500, mx: 'auto', mt: 8 }}>
       <Typography variant="h4" gutterBottom>Join a League</Typography>
+      <Typography variant="body1" sx={{ mb: 4 }}>
+        Bellow are all public leagues 
+      </Typography>
       {loading ? (
         <CircularProgress />
       ) : (

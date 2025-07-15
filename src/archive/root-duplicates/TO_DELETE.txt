@@ -1,0 +1,18 @@
+The following files in src/ are now archived and can be deleted:
+- AuthProvider.tsx
+- calender.tsx
+- CreateLeague.tsx
+- devAddTestData.ts
+- devAddTestUsers.ts
+- firebase.ts
+- Inbox.tsx
+- Inboxdb.ts
+- InternalBox.tsx
+- JoinLeague.tsx
+- Login.tsx
+- main.tsx
+- playerDb.ts
+- RecordGame.tsx
+- Register.tsx
+- ScheduleGame.tsx
+- Scoreboard.tsx
