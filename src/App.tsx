@@ -142,8 +142,15 @@ const theme = createTheme({
         },
       },
     },
-  }
-});
+      MuiContainer: {
+        styleOverrides: {
+          root: {
+            padding: '0px', // Consistent padding
+          },
+        },
+      },
+    }
+  });
 
 
 const Login = React.lazy(() => import('./users/Login'));
@@ -394,7 +401,7 @@ const LeagueRoutes = () => (
       <Route path="record" element={<ProtectedRoute><RecordGame /></ProtectedRoute>} />
       <Route path="scoreboard" element={<ProtectedRoute><Scoreboard /></ProtectedRoute>} />
     </Route>
-    <Route path="leagueSettings" element={<ProtectedRoute><LeagueSettings /></ProtectedRoute>} />
+    <Route path="leagueSettings/*" element={<ProtectedRoute><LeagueSettings /></ProtectedRoute>} />
   </Route>
 )
 
