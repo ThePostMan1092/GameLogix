@@ -1,20 +1,13 @@
-import { Outlet, useParams, useNavigate, NavLink  } from 'react-router-dom';
-import { Box, IconButton, Grid, Typography, Avatar, Button } from '@mui/material';
+import { Outlet, useParams, useNavigate } from 'react-router-dom';
+import { Box, IconButton, Grid, Typography, Avatar } from '@mui/material';
 import SettingsApplicationsIcon from '@mui/icons-material/SettingsApplications';
 
-
-const tabPages = [
-  { label: 'League', path: 'Scoreboard' },
-  { label: 'Record', path: 'record' },
-  { label: 'Schedule', path: 'schedule' }
-];
-
 const LeagueLayout = () => {
-    const { LeagueId } = useParams();
+    const { leagueId } = useParams();
     const navigate = useNavigate();
 
     // Placeholder for league name and logo, replace with actual data fetch if needed
-    const leagueName = `League ${LeagueId}`;
+    const leagueName = `League ${leagueId}`;
     const leagueLogoUrl = ''; // Add logo URL if available
 
     return (
@@ -30,7 +23,7 @@ const LeagueLayout = () => {
                 </Grid>
                 <Grid>
                     <IconButton
-                        onClick={() => navigate(`/League/${LeagueId}/leagueSettings`)}
+                        onClick={() => navigate(`/League/${leagueId}/LeagueSettings`)}
                         size="large"
                         color ="primary">
                         <SettingsApplicationsIcon />

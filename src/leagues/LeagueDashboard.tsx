@@ -1,7 +1,5 @@
-import { Outlet, useParams, useNavigate, NavLink  } from 'react-router-dom';
-import { Box, IconButton, Grid, Typography, Avatar, Button } from '@mui/material';
-import SettingsApplicationsIcon from '@mui/icons-material/SettingsApplications';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { Outlet, useParams, NavLink  } from 'react-router-dom';
+import { Box, Button } from '@mui/material';
 
 const tabPages = [
   { label: 'League', path: 'Scoreboard' },

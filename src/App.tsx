@@ -1,7 +1,7 @@
 import React, { Suspense, useEffect, useState } from 'react';
 import { AuthProvider, useAuth } from './Backend/AuthProvider';
-import { Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom';
-import { Divider, Badge, Typography, Button, Container, Box, CssBaseline, ThemeProvider, createTheme, Avatar, IconButton, CircularProgress } from '@mui/material';
+import { Routes, Route, Link, Navigate, useNavigate, useParams } from 'react-router-dom';
+import { Divider, Badge, Typography, Button, Container, Box, CssBaseline, ThemeProvider, createTheme, CircularProgress } from '@mui/material';
 import Grid from '@mui/material/Grid';
 import MailIcon from '@mui/icons-material/Mail';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
@@ -393,17 +393,19 @@ const globalRoutes = (user: User | null) => [
   <Route path="/tournaments/new" element={<ProtectedRoute><NewTournament /></ProtectedRoute>} />,
 ];
 
-const LeagueRoutes = () => (
-  <Route path="/League/:LeagueId" element={<LeagueLayout />}>
-    <Route index element={<ProtectedRoute><LeagueDashboard /></ProtectedRoute>} />
-    <Route path="dashboard" element={<ProtectedRoute><LeagueDashboard /></ProtectedRoute>}>
-      <Route path="schedule" element={<ProtectedRoute><ScheduleGame /></ProtectedRoute>} />
-      <Route path="record" element={<ProtectedRoute><RecordGame /></ProtectedRoute>} />
-      <Route path="scoreboard" element={<ProtectedRoute><Scoreboard /></ProtectedRoute>} />
+const LeagueRoutes = () => {
+  return (
+    <Route path="league/:leagueId" element={<LeagueLayout />}>
+      <Route index element={<ProtectedRoute><LeagueDashboard /></ProtectedRoute>} />
+        <Route path="dashboard" element={<ProtectedRoute><LeagueDashboard /></ProtectedRoute>}>
+        <Route path="schedule" element={<ProtectedRoute><ScheduleGame /></ProtectedRoute>} />
+        <Route path="record" element={<ProtectedRoute><RecordGame /></ProtectedRoute>} />
+        <Route path="scoreboard" element={<ProtectedRoute><Scoreboard /></ProtectedRoute>} />
+      </Route>
+      <Route path="LeagueSettings" element={<ProtectedRoute><LeagueSettings /></ProtectedRoute>} />
     </Route>
-    <Route path="leagueSettings/*" element={<ProtectedRoute><LeagueSettings /></ProtectedRoute>} />
-  </Route>
-)
+  )
+};
 
  
 

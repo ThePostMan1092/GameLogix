@@ -2,6 +2,8 @@ export interface LeagueSettings {
   // Basic Info
   id?: string;
   name: string;
+  description?: string;
+  competitionLevel: 'casual' | 'competitive' | 'pro';
   adminId: string;
   members: string[];
   createdAt: any; // Firestore Timestamp
@@ -30,7 +32,6 @@ export interface LeagueSettings {
   bannerUrl?: string;
   themeColor?: string;
   emoji?: string;
-  description?: string;
   pinnedMessage?: string;
 
   // 📊 Competition Format & Ranking

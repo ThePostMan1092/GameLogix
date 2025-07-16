@@ -22,7 +22,8 @@ const defaultSettings: Omit<LeagueSettings, 'id' | 'name' | 'adminId' | 'members
   matchVerification: 'manual',
   rankingSystem: 'elo',
   scheduleType: 'open',
-  tournamentMode: 'none'
+  tournamentMode: 'none',
+  competitionLevel: 'casual' // or another appropriate default value
 };
 
 const CreateLeagueForm: React.FC = () => {
