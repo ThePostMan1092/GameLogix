@@ -6,14 +6,14 @@ import { useParams, useNavigate } from 'react-router-dom';
 const SettingsTabs = React.lazy(() => import('./settings/SettingsTabs'));
 
 const LeagueSettings: React.FC = () => {
-  const { LeagueId } = useParams();
+  const { leagueId } = useParams();
   const navigate = useNavigate();
 
   return (
     <Box sx={{ p: 4, maxWidth: 1200, mx: 'auto' }}>
       <Box display="flex" alignItems="center" gap={2} mb={4}>
         <Grid>
-          <IconButton onClick={() => navigate(`/League/${LeagueId}/dashboard/Scoreboard`)} color="primary">
+          <IconButton onClick={() => navigate(`/League/${leagueId}/dashboard/Scoreboard`)} color="primary">
             <ArrowBackIcon />
           </IconButton>
         </Grid>
@@ -34,7 +34,7 @@ const LeagueSettings: React.FC = () => {
         </Button>
         <Button 
           variant="contained" 
-          onClick={() => navigate(`/leagues/${LeagueId}`)}
+          onClick={() => navigate(`/League/${leagueId}`)}
           size="large"
         >
           View League

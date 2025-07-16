@@ -8,7 +8,7 @@ const tabPages = [
 ];
 
 const LeagueDashboard = () => {
-    const { LeagueId } = useParams();
+    const { leagueId } = useParams();
     return (
         <Box sx={{ bgcolor: 'background.paper', borderRadius: 2, p: 1 }}>
             <Box display="flex" gap={20} justifyContent="center" my={1} mb={2}>
@@ -16,7 +16,7 @@ const LeagueDashboard = () => {
                 <Button
                     key={tab.path}
                     component={NavLink}
-                    to={`/League/${LeagueId}/dashboard/${tab.path}`}
+                    to={`/League/${leagueId}/dashboard/${tab.path}`}
                     sx={{
                     color: 'text.primary',
                     bgcolor: '#f43d0a27',

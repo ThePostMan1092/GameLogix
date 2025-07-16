@@ -16,32 +16,34 @@ const tabs = [
   { label: 'Ranking', path: 'ranking', Component: RankingSettingsTab },
 ];
 
-const { leagueId } = useParams();
 
 const SettingsTabs: React.FC = () => {
+  const { leagueId } = useParams();
   return (
     <div>
       <nav style={{ display: 'flex', gap: 16, marginBottom: 24 }}>
         {tabs.map(tab => (
-          <NavLink
+          <Button
             key={tab.path}
-            to={`/League/${leagueId}/leagueSettings/${tab.path}`}
+            component={NavLink}
+            to={`/league/${leagueId}/LeagueSettings/${tab.path}`}
             replace
-            style={({ isActive }) => ({
-              color: isActive ? '#fff' : '#A8B2BA',
-              backgroundColor: isActive ? '#F43C0A' : '#f43d0a27',
-              borderRadius: 8,
-              padding: '8px 24px',
+            sx={{
+              color: 'text.primary',
+              bgcolor: '#f43d0a27',
+              '&.active': {
+                bgcolor: 'primary.main',
+                color: 'primary.contrastText',
+              },
+              borderRadius: 2,
+              px: 3,
+              py: 0.5,
               fontWeight: 600,
               textTransform: 'none',
-              border: 'none',
-              outline: 'none',
-              cursor: 'pointer',
-              marginRight: 8,
-            })}
+            }}
           >
             {tab.label}
-          </NavLink>
+          </Button>
         ))}
       </nav>
       <Suspense fallback={<div>Loading...</div>}>

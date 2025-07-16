@@ -3,7 +3,7 @@ import { doc, getDoc, updateDoc } from 'firebase/firestore';
 // Adjust the path below if your firebase file is in a different location
 import { db } from '../../Backend/firebase';
 import { useParams } from 'react-router-dom';
-import { Box, Paper, Typography, Divider, Grid, TextField, Button } from '@mui/material';
+import { Box, Paper, Typography, Divider, Grid, TextField} from '@mui/material';
 
 const BasicInfoTab: React.FC = () => {
   const { leagueId } = useParams();
@@ -67,8 +67,7 @@ const BasicInfoTab: React.FC = () => {
             <TextField
               label="League Identifier"
               variant="outlined"
-              id="outline-helperText"
-              helperText="Unique ID uneditable"
+              helperText="Unique ID is uneditable"
               value={editLeague?.id}
               fullWidth
               margin="normal"
@@ -78,12 +77,14 @@ const BasicInfoTab: React.FC = () => {
             <TextField
               label="League Description"
               variant="outlined"
+              id="outlined-multiline-static"
               value={editLeague?.description || ''}
               onChange={(e) => handleChange('description', e.target.value)}
               fullWidth
               margin="normal"
-              sx={{ height: 50 }}
-              size="medium"
+              sx={{ height: 50, fontSize: '.5rem' }}
+              size="small"
+              maxRows={3}
             />
           </Box>
         </Grid>

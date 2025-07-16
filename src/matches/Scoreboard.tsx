@@ -18,6 +18,7 @@ interface PlayerStats {
 }
 
 
+
 const sports = ['Ping Pong Singles', 'Ping Pong Doubles', 'Foosball', 'Pool'];
 
 const Scoreboard: React.FC = () => {

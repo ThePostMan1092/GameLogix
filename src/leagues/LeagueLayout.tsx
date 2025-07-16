@@ -23,7 +23,7 @@ const LeagueLayout = () => {
                 </Grid>
                 <Grid>
                     <IconButton
-                        onClick={() => navigate(`/League/${leagueId}/LeagueSettings`)}
+                    onClick={() => navigate(`/league/${leagueId}/LeagueSettings`)}
                         size="large"
                         color ="primary">
                         <SettingsApplicationsIcon />

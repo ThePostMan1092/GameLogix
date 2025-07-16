@@ -284,7 +284,7 @@ const LeftSidebar: React.FC = () => {
                     <Grid>
                       <Button
                         component={Link as any}
-                        to={`/League/${league.id}/dashboard/Scoreboard`}
+                        to={`/league/${league.id}/dashboard/Scoreboard`}
                         sx={{
                           textTransform: 'none',
                           p: 0,
@@ -402,7 +402,7 @@ const LeagueRoutes = () => {
         <Route path="record" element={<ProtectedRoute><RecordGame /></ProtectedRoute>} />
         <Route path="scoreboard" element={<ProtectedRoute><Scoreboard /></ProtectedRoute>} />
       </Route>
-      <Route path="LeagueSettings" element={<ProtectedRoute><LeagueSettings /></ProtectedRoute>} />
+      <Route path="LeagueSettings/*" element={<ProtectedRoute><LeagueSettings /></ProtectedRoute>} />
     </Route>
   )
 };
