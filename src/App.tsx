@@ -160,7 +160,7 @@ const Inbox = React.lazy(() => import('./Inbox'));
 const LeagueSettings = React.lazy(() => import('./leagues/leagueSettings'));
 const LeagueLayout = React.lazy(() => import('./leagues/LeagueLayout'));
 const NewTournament = React.lazy(() => import('./tournaments/NewTourny'));
-
+const LeagueDashboard = React.lazy(() => import('./leagues/LeagueDashboard'));
 /*const Scoreboards = React.lazy(() => import('./Scoreboards'));
 const TournamentMaker = React.lazy(() => import('./TournamentMaker'));*/
   
@@ -277,7 +277,7 @@ const LeftSidebar: React.FC = () => {
                     <Grid>
                       <Button
                         component={Link as any}
-                        to={`/League/${league.id}/Scoreboard`}
+                        to={`/League/${league.id}/dashboard/Scoreboard`}
                         sx={{
                           textTransform: 'none',
                           p: 0,
@@ -388,9 +388,12 @@ const globalRoutes = (user: User | null) => [
 
 const LeagueRoutes = () => (
   <Route path="/League/:LeagueId" element={<LeagueLayout />}>
-    <Route path="schedule" element={<ProtectedRoute><ScheduleGame /></ProtectedRoute>} />
-    <Route path="record" element={<ProtectedRoute><RecordGame /></ProtectedRoute>} />
-    <Route path="scoreboard" element={<ProtectedRoute><Scoreboard /></ProtectedRoute>} />
+    <Route index element={<ProtectedRoute><LeagueDashboard /></ProtectedRoute>} />
+    <Route path="dashboard" element={<ProtectedRoute><LeagueDashboard /></ProtectedRoute>}>
+      <Route path="schedule" element={<ProtectedRoute><ScheduleGame /></ProtectedRoute>} />
+      <Route path="record" element={<ProtectedRoute><RecordGame /></ProtectedRoute>} />
+      <Route path="scoreboard" element={<ProtectedRoute><Scoreboard /></ProtectedRoute>} />
+    </Route>
     <Route path="leagueSettings" element={<ProtectedRoute><LeagueSettings /></ProtectedRoute>} />
   </Route>
 )

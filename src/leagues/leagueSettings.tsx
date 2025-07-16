@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Box, Typography, Paper,  Button, Alert, CircularProgress, Card, CardContent, Avatar, Chip, TextField, Badge,
+import { Box, Typography, Paper,  Button, Alert, CircularProgress, Card, CardContent, Avatar, Chip, TextField, Badge, Grid,
   FormControl, InputLabel, Select, MenuItem, Switch, FormControlLabel, Accordion, AccordionSummary, AccordionDetails, IconButton
 } from '@mui/material';
 import { 
@@ -16,6 +16,7 @@ import {
   EmojiEvents as TrophyIcon,
   Info as InfoIcon
 } from '@mui/icons-material';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useAuth } from '../Backend/AuthProvider';
 import { db } from '../Backend/firebase';
 import { 
@@ -32,6 +33,7 @@ import {
 import { type LeagueSettings as LeagueSettingsType } from './league';
 import { sendSystemMessage } from '../Inbox';
 import type { LeagueSettings, SportSettings, SpikeballSettings, PingPongSettings, CustomSportSettings } from './league';
+
 
 
 
@@ -325,7 +327,11 @@ const LeagueSettings: React.FC = () => {
   return (
     <Box sx={{ p: 4, maxWidth: 1200, mx: 'auto' }}>
       <Box display="flex" alignItems="center" gap={2} mb={4}>
-        <SettingsIcon fontSize="large" />
+          <Grid>
+            <IconButton onClick={() => navigate(`/League/${league.id}/dashboard/Scoreboard`)} color="primary">
+              <ArrowBackIcon />
+            </IconButton>
+          </Grid>
         <Typography variant="h4">
           League Settings: {league.name}
         </Typography>
