@@ -1,6 +1,6 @@
 import React, { Suspense, useEffect, useState } from 'react';
 import { AuthProvider, useAuth } from './Backend/AuthProvider';
-import { Routes, Route, Link, Navigate, useNavigate, useParams } from 'react-router-dom';
+import { Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom';
 import { Divider, Badge, Typography, Button, Container, Box, CssBaseline, ThemeProvider, createTheme, CircularProgress } from '@mui/material';
 import Grid from '@mui/material/Grid';
 import MailIcon from '@mui/icons-material/Mail';

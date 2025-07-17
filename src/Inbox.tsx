@@ -1,121 +1,60 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate} from 'react-router-dom';
-import { Box, Button, Typography, Alert, CircularProgress } from '@mui/material';
+import { Box, Typography, Alert, CircularProgress } from '@mui/material';
 import { useAuth } from './Backend/AuthProvider';
 import { db } from './Backend/firebase';
-import { collection, query, where, getDocs, updateDoc, doc, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 
-interface SystemMessage {
-  id: string;
-  type: 'approval' | 'game' | 'tournament' | 'notification';
-  content: string;
-  createdAt: any;
-  read: boolean;
-  actionLabel?: string;
-  actionUrl?: string;
-}
-
-interface CreateMessageProps {
-  senderId?: string;
-  recipientId: string;
-  type: 'approval' | 'game' | 'tournament' | 'notification';
-  subject: string;
-  content: string;
-  actionLabel?: string;
-  actionUrl?: string;
-}
-
-export const sendSystemMessage = async ({
-  senderId,
-  recipientId,
-  type,
-  subject,
-  content,
-  actionLabel,
-  actionUrl,
-}: CreateMessageProps) => {
-  await addDoc(collection(db, 'messages'), {
-    senderId,
-    recipientId,
-    type,
-    subject,
-    content,
-    actionLabel,
-    actionUrl,
-    createdAt: serverTimestamp(),
-    read: false,
-  });
-};
-
-// Custom convenience wrappers:
-
-export const sendJoinApprovalRequest = async (adminId: string, playerName: string, playerId: string, leagueId: string) => {
-  await sendSystemMessage({
-    recipientId: adminId,
-    type: 'approval',
-    subject: 'Membership Approval Request',
-    content: `${playerName} has requested to join your league.`,
-    actionLabel: 'Review',
-    actionUrl: `/leagues/${leagueId}/leagueSettings`,
-    senderId: playerId
-  });
-};
-
-export const notifyLeagueMembers = async (memberIds: string[], newPlayerName: string) => {
-  console.log('[notifyLeagueMembers] called with:', memberIds, newPlayerName);
-  if (!memberIds || memberIds.length === 0) {
-    console.log('[notifyLeagueMembers] No memberIds provided, aborting.');
-    return;
-  }
-  const promises = memberIds.map(memberId =>
-    sendSystemMessage({
-      recipientId: memberId,
-      type: 'notification',
-      subject: 'New League Member',
-      actionLabel: "view",
-      content: `${newPlayerName} has joined your league.`,
-      actionUrl: ''
-    })
-  );
-  try {
-    await Promise.all(promises);
-    console.log('[notifyLeagueMembers] All notifications sent.');
-  } catch (e) {
-    console.error('Failed to notify league members:', e);
-  }
-};
-
+import { getUserConversations } from './messaging';
 
 const Inbox: React.FC = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
-  const [messages, setMessages] = useState<SystemMessage[]>([]);
+  const [conversations, setConversations] = useState<any[]>([]); 
+  console.log("conversations:", conversations);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
     if (!user) return;
-    setLoading(true);
-    const fetchMessages = async () => {
+    const fetchConvAndMessages = async () => {
       try {
-        const q = query(collection(db, 'messages'), where('recipientId', '==', user.uid));
-        const snap = await getDocs(q);
-        setMessages(snap.docs.map(doc => ({ id: doc.id, ...doc.data() }) as SystemMessage));
-      } catch (e: any) {
-        setError('Failed to load messages.');
-      } finally {
+        const convos = await getUserConversations(user.uid);
+        setConversations(convos);
+
+        const inboxConversations = convos.filter(c => c.type === 'inbox');
+
+        const allInboxMessages = await Promise.all(
+          inboxConversations.map(async convo => {
+            const baseCollection = collection(db, `conversations/${convo.id}/messages`);
+            let q;
+            // Use type assertion to access recipientIds if present
+            const recipientIds = (convo as any).recipientIds;
+            if (recipientIds && Array.isArray(recipientIds) && recipientIds.length > 0) {
+              q = query(baseCollection, where('recipientIds', 'array-contains', user.uid));
+            } else {
+              q = query(baseCollection);
+            }
+            const snap = await getDocs(q);
+            return snap.docs.map(doc => ({
+              id: doc.id,
+              conversationId: convo.id,
+              ...doc.data()
+            }));
+          })
+        );
+        setMessages(allInboxMessages.flat());
+        messages.sort((a, b) => a.timestamp - b.timestamp);
+        setLoading(false);
+      } catch (err) {
+        console.error('Error fetching conversations:', err);
+        setError('Failed to load conversations. Please try again later.');
         setLoading(false);
       }
     };
-    fetchMessages();
+    fetchConvAndMessages();
   }, [user]);
 
-  const handleMarkRead = async (id: string) => {
-    try {
-      await updateDoc(doc(db, 'messages', id), { read: true });
-      setMessages(msgs => msgs.map(m => m.id === id ? { ...m, read: true } : m));
-    } catch {}
-  };
+  const [messages, setMessages] = useState<any[]>([]);
+
 
   if (!user) return <Alert severity="info">Sign in to view your inbox.</Alert>;
   if (loading) return <Box display="flex" justifyContent="center" mt={8}><CircularProgress /></Box>;
@@ -131,32 +70,15 @@ const Inbox: React.FC = () => {
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
       <Box display="flex" flexDirection="column" gap={2}>
         {messages.length === 0 ? (
-          <Typography variant="body2" color="text.secondary">No messages.</Typography>
+          <Alert severity="info">No messages in your inbox.</Alert>
         ) : (
-          messages.sort((a, b) => b.createdAt?.seconds - a.createdAt?.seconds).map(msg => (
-            <Box key={msg.id} sx={{ p: 2, border: '1px solid #A7A29C', borderRadius: 2, bgcolor: msg.read ? 'background.paper' : '#ffe0b2', textAlign: 'left' }}>
-              <Typography variant="subtitle1" fontWeight={700} color={msg.read ? 'text.primary' : 'primary.main'}>
-                {msg.type === 'approval' && 'Membership Approval'}
-                {msg.type === 'game' && 'Game Request'}
-                {msg.type === 'tournament' && 'Tournament Update'}
-                {msg.type === 'notification' && 'Notification'}
-              </Typography>
-              <Typography variant="body2" sx={{ mb: 1 }}>{msg.content}</Typography>
+          messages.map(msg => (
+            <Box key={msg.id} p={2} borderBottom="1px solid #eee">
+              <Typography variant="subtitle2">{msg.subject}</Typography>
+              <Typography variant="body2">{msg.content}</Typography>
               <Typography variant="caption" color="text.secondary">
-                {msg.createdAt && new Date(msg.createdAt.seconds * 1000).toLocaleString()}
+                {new Date(msg.timestamp?.toDate()).toLocaleString()}
               </Typography>
-              <Box mt={1} display="flex" gap={1}>
-                {!msg.read && (
-                  <Button size="small" color="primary" variant="outlined" onClick={() => handleMarkRead(msg.id)}>
-                    Mark as Read
-                  </Button>
-                )}
-                {msg.actionLabel && msg.actionUrl && (
-                  <Button size="small" color="secondary" variant="contained" onClick={() => navigate(msg.actionUrl!)}>
-                    {msg.actionLabel}
-                  </Button>
-                )}
-              </Box>
             </Box>
           ))
         )}

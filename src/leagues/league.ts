@@ -48,6 +48,8 @@ export interface LeagueSettings {
   anonymousStats?: boolean;
   bannedUsers?: string[];
   allowedDepartments?: string[];
+  inboxConvoId: string;
+  dmConvoId: string;
 }
 
 type SportType = 'Ping Pong' | 'Foosball' | 'Pool' | 'Basketball' | 'Air Hockey' | 'Spikeball' | 'Custom';

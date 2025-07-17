@@ -16,9 +16,11 @@ import { db } from '../Backend/firebase';
 import { setDoc, doc, Timestamp } from 'firebase/firestore';
 import { v4 as uuidv4 } from 'uuid';
 
+import {createConversation, sendMessage } from '../messaging';
+
 const supportedSports = ['Ping Pong', 'Foosball', 'Pool'];
 
-const defaultSettings: Omit<LeagueSettings, 'id' | 'name' | 'adminId' | 'members' | 'createdAt' | 'joinPasscode' | 'joinDeadline' | 'joinType' | 'maxMembers' | 'sports' | 'visibility' | 'sportsSettings'> = {
+const defaultSettings: Omit<LeagueSettings, 'id' | 'name' | 'adminId' | 'members' | 'createdAt' | 'joinPasscode' | 'joinDeadline' | 'joinType' | 'maxMembers' | 'sports' | 'visibility' | 'sportsSettings' | 'inboxConvoId' | 'dmConvoId' | 'reviewConvoId'> = {
   matchVerification: 'manual',
   rankingSystem: 'elo',
   scheduleType: 'open',
@@ -71,30 +73,62 @@ const CreateLeagueForm: React.FC = () => {
     const uuid = uuidv4();
     const docId = `${name} - ${uuid}`;
 
-    // Build the League document based on league.ts structure
-    const leagueDoc = {
-      id: docId,
-      name,
-      adminId: user.uid,
-      members: [user.uid],
-      createdAt: Timestamp.now(),
-      visibility,
-      joinType,
-      joinPasscode: joinPasscode || '',
-      ...(joinDeadline ? { joinDeadline: Timestamp.fromDate(new Date(joinDeadline)) } : {}),
-      maxMembers: maxMembers === '' ? 1000000 : Number(maxMembers),
-      sports,
-      // Gameplay Settings (auto-set)
-      matchVerification: defaultSettings.matchVerification,
-      rankingSystem: defaultSettings.rankingSystem,
-      scheduleType: defaultSettings.scheduleType,
-      tournamentMode: defaultSettings.tournamentMode,
-      // Optional/advanced fields can be added here as needed
-    };
-
     try {
+      // Create conversations first
+      const conversationInboxId = await createConversation(`${name} - league Inbox`, [user.uid], 'inbox');
+      const conversationDMId = await createConversation(`${name} - league DM`, [user.uid], 'direct');
+      const conversationReviewId = await createConversation(`${name} - league Review`, [user.uid], 'review');
+
+
+      // Build the League document with the actual conversation IDs
+      const leagueDoc = {
+        id: docId,
+        name,
+        adminId: user.uid,
+        members: [user.uid],
+        createdAt: Timestamp.now(),
+        visibility,
+        joinType,
+        joinPasscode: joinPasscode || '',
+        ...(joinDeadline ? { joinDeadline: Timestamp.fromDate(new Date(joinDeadline)) } : {}),
+        maxMembers: maxMembers === '' ? 1000000 : Number(maxMembers),
+        sports,
+        matchVerification: defaultSettings.matchVerification,
+        rankingSystem: defaultSettings.rankingSystem,
+        scheduleType: defaultSettings.scheduleType,
+        tournamentMode: defaultSettings.tournamentMode,
+        inboxConvoId: conversationInboxId || '',
+        dmConvoId: conversationDMId || '',
+        reviewConvoId: conversationReviewId || '',
+        // Optional/advanced fields can be added here as needed
+      };
+
       await setDoc(doc(db, 'leagues', docId), leagueDoc); // Ensure the document is created with the custom ID
+      
       setSuccess(true);
+
+      console.log('Conversation created for league:', name);
+      if (conversationInboxId) {
+        await sendMessage(conversationInboxId, {
+          conversationId: conversationInboxId,
+          senderId: user.uid,
+          subject: `Created League: ${name}`,
+          content: `Congrats, you have created a new league: ${name}!`,
+          messageType: "notification",
+          read: false
+        });
+      }
+      if (conversationDMId) {
+        await sendMessage(conversationDMId, {
+          conversationId: conversationDMId,
+          senderId: user.uid,
+          subject: `Created League: ${name}`,
+          content: `Welcome to the league chat for: ${name}!`,
+          messageType: "notification",
+          read: false
+        });
+      }
+      console.log('inbox, DM, and review conversations created:', conversationInboxId, conversationDMId, conversationReviewId);
       setName('');
       setVisibility('public');
       setJoinType('open');
@@ -188,14 +222,14 @@ const CreateLeagueForm: React.FC = () => {
             </Button>
           ))}
         </Box>
-        {error && (
-          <Typography color="error" sx={{ mb: 2 }}>
-            {error}
-          </Typography>
-        )}
         {success && (
           <Typography color="success.main" sx={{ mb: 2 }}>
             League created successfully!
+          </Typography>
+        )}
+        {error && (
+          <Typography color="error.main" sx={{ mb: 2 }}>
+            {error}
           </Typography>
         )}
         <Button

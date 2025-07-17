@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 // Adjust the path below if your firebase file is in a different location
 import { db } from '../../Backend/firebase';
 import { useParams } from 'react-router-dom';
@@ -10,6 +10,7 @@ const BasicInfoTab: React.FC = () => {
   console.log('LeagueID:', leagueId);
   console.log('LeagueId type:', typeof leagueId);
   const [league, setLeague] = useState<any>(null);
+  console.log('League state:', league);
   const [editLeague, setEditLeague] = useState<any>(null);
 
   useEffect(() => {
@@ -31,13 +32,6 @@ const BasicInfoTab: React.FC = () => {
       ...prev,
       [field]: value,
     }));
-  };
-
-  // Save changes to Firestore
-  const handleSave = async () => {
-    if (!leagueId || !editLeague) return;
-    await updateDoc(doc(db, 'leagues', leagueId), editLeague);
-    setLeague(editLeague);
   };
 
   return (

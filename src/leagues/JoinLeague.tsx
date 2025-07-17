@@ -5,7 +5,8 @@ import { InternalBox } from '../Backend/InternalBox';
 import { FormControl, InputLabel, Select, MenuItem, Typography, Button, CircularProgress, Box, TextField } from '@mui/material';
 import { type LeagueSettings } from './league';
 import { useAuth } from '../Backend/AuthProvider';
-import { notifyLeagueMembers, sendJoinApprovalRequest } from '../Inbox';
+
+import { sendMessage, addUserToLeagueConversations} from '../messaging';
 
 const JoinLeague: React.FC = () => {
   const [leagues, setLeagues] = useState<LeagueSettings[]>([]);
@@ -63,6 +64,7 @@ const JoinLeague: React.FC = () => {
       return;
     }
     const league = leagues.find(l => l.id === selectedLeague);
+    console.log('league', league);
     if (!league) {
       setError('Please select a league.');
       return;
@@ -79,24 +81,44 @@ const JoinLeague: React.FC = () => {
         await updateDoc(leagueRef, {
           members: arrayUnion(user.uid)
         });
-        console.log('[JoinLeague] Calling notifyLeagueMembers with:', league.members || [], user.displayName || user.email || user.uid);
-        await notifyLeagueMembers(league.members || [], user.displayName || user.email || user.uid);
+        if (!user?.uid || !league?.id) {
+          setError('User or league ID is missing.');
+          return;
+        }
+        await addUserToLeagueConversations(user.uid, league.id!);
+        await sendMessage(league.inboxConvoId, {
+          conversationId: league.inboxConvoId,
+          senderId: user.uid,
+          subject: `New Member in ${league.name}`,
+          content: `${user.displayName || user.email || user.uid} has joined the league: "${league.name}".`,
+          messageType: "notification",
+          read: false
+        });
         setSuccess(true);
         setError('');
       } else if (league.joinType === 'approval') {
         // For approval leagues, send request to admin
-        await sendJoinApprovalRequest(
-          league.adminId, 
-          user.displayName || user.email || user.uid,
-          league.id!,
-          user.uid
-        );
+        if (!league.inboxConvoId) {
+          console.error('League conversation ID is missing.');
+          setError('League conversation ID is missing.');
+          return;
+        }
+        console.log('league.inboxConvoId', league.inboxConvoId);
+        await sendMessage(league.inboxConvoId, {
+          conversationId: league.inboxConvoId,
+          senderId: user.uid,
+          subject: `Join Request: ${league.name}`,
+          content: `${user.displayName || user.email || user.uid} has requested to join the league "${league.name}".`,
+          recipientIds: [league.adminId],
+          messageType: "notification",
+          read: false
+        });
         setSuccess(true);
         setError('Request sent to league admin for approval.');
       }
-    } catch (err: any) {
+    } catch (error: any) {
       setError('Failed to join league. Please try again.');
-      console.error(err);
+      console.error('Error joining league:', error);
     }
   };
 
@@ -146,6 +168,7 @@ const JoinLeague: React.FC = () => {
           {error && <Typography color="error" sx={{ mb: 2 }}>{error}</Typography>}
           {success && 
             <Typography color="success.main" sx={{ mb: 2 }}>Successfully joined the league!</Typography>
+
           }
           <Button
             type="submit"
