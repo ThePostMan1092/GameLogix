@@ -50,6 +50,8 @@ export interface LeagueSettings {
   allowedDepartments?: string[];
   inboxConvoId: string;
   dmConvoId: string;
+  reviewConvoId: string;
+
 }
 
 type SportType = 'Ping Pong' | 'Foosball' | 'Pool' | 'Basketball' | 'Air Hockey' | 'Spikeball' | 'Custom';

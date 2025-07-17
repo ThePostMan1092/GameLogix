@@ -103,7 +103,6 @@ const JoinLeague: React.FC = () => {
           setError('League conversation ID is missing.');
           return;
         }
-        console.log('league.inboxConvoId', league.inboxConvoId);
         await sendMessage(league.inboxConvoId, {
           conversationId: league.inboxConvoId,
           senderId: user.uid,
@@ -112,6 +111,21 @@ const JoinLeague: React.FC = () => {
           recipientIds: [league.adminId],
           messageType: "notification",
           read: false
+        });
+        await sendMessage(league.reviewConvoId, {
+          conversationId: league.reviewConvoId,
+          senderId: user.uid,
+          subject: `Join Request: ${league.name}`,
+          content: `${user.displayName || user.email || user.uid} has requested to join the league "${league.name}".`,
+          recipientIds: [league.adminId],
+          messageType: "request",
+          read: false,
+          meta: {
+            leagueId: league.id,
+            actionRequiredBy: league.adminId,
+            targetUserId: user.uid,
+            status: 'pending'
+          }
         });
         setSuccess(true);
         setError('Request sent to league admin for approval.');

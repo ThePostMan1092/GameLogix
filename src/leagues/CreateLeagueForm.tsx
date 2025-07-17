@@ -1,14 +1,5 @@
 import React, { useState } from 'react';
-import {
-  Button,
-  TextField,
-  Typography,
-  MenuItem,
-  Select,
-  InputLabel,
-  FormControl,
-  Box,
-} from '@mui/material';
+import {Button, TextField, Typography, MenuItem, Select, InputLabel, FormControl, Box,} from '@mui/material';
 import { type LeagueSettings } from './league';
 import { useAuth } from '../Backend/AuthProvider';
 import { InternalBox } from '../Backend/InternalBox';
