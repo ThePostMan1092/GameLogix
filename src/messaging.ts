@@ -107,3 +107,38 @@ export async function addUserToLeagueConversations(userId: string, leagueId: str
     participants: arrayUnion(userId)
   });
 }
+
+// 6. Update message metadata (for join request approval/denial)
+export async function updateMessage(
+  conversationId: string,
+  messageId: string,
+  updates: Partial<Message>
+): Promise<void> {
+  try {
+    await updateDoc(doc(db, `conversations/${conversationId}/messages`, messageId), updates);
+  } catch (error) {
+    console.error("Error updating message:", error);
+    throw error;
+  }
+}
+
+// 7. Helper function specifically for join request status updates
+export async function updateJoinRequestStatus(
+  conversationId: string,
+  messageId: string,
+  status: 'approved' | 'rejected',
+  adminId: string
+): Promise<void> {
+  try {
+    await updateMessage(conversationId, messageId, {
+      meta: {
+        status: status,
+        actionRequiredBy: adminId
+      },
+      read: true
+    });
+  } catch (error) {
+    console.error("Error updating join request status:", error);
+    throw error;
+  }
+}

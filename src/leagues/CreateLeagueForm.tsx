@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {Button, TextField, Typography, MenuItem, Select, InputLabel, FormControl, Box,} from '@mui/material';
-import { type LeagueSettings } from './league';
+import { type LeagueSettings } from '../types/league';
 import { useAuth } from '../Backend/AuthProvider';
 import { InternalBox } from '../Backend/InternalBox';
 import { db } from '../Backend/firebase';
@@ -16,7 +16,9 @@ const defaultSettings: Omit<LeagueSettings, 'id' | 'name' | 'adminId' | 'members
   rankingSystem: 'elo',
   scheduleType: 'open',
   tournamentMode: 'none',
-  competitionLevel: 'casual' // or another appropriate default value
+  competitionLevel: 'casual',
+  matchReporting: 'anyone',
+  // or another appropriate default value
 };
 
 const CreateLeagueForm: React.FC = () => {

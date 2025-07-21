@@ -3,14 +3,14 @@ import { Routes, Route, NavLink, useParams } from 'react-router-dom';
 import { Button } from '@mui/material';
 
 const BasicInfoTab = React.lazy(() => import('./BasicInfoTab'));
-const GameplaySettingsTab = React.lazy(() => import('./GameplaySettingsTab'));
+const GameplayTab = React.lazy(() => import('./GameplaySettingsTab'));
 const MemberAdminTab = React.lazy(() => import('./MemberAdminTab'));
 const CustomizationTab = React.lazy(() => import('./CustomizationTab'));
 const RankingSettingsTab = React.lazy(() => import('./RankingSettingsTab'));
 
 const tabs = [
   { label: 'Basic Info', path: 'basic', Component: BasicInfoTab },
-  { label: 'Gameplay', path: 'gameplay', Component: GameplaySettingsTab },
+  { label: 'Gameplay', path: 'gameplay', Component: GameplayTab },
   { label: 'Members/Admins', path: 'members', Component: MemberAdminTab },
   { label: 'Customization', path: 'custom', Component: CustomizationTab },
   { label: 'Ranking', path: 'ranking', Component: RankingSettingsTab },
@@ -50,7 +50,7 @@ const SettingsTabs: React.FC = () => {
         <Routes>
           <Route index element={<BasicInfoTab />} />
           <Route path="basic" element={<BasicInfoTab />} />
-          <Route path="gameplay" element={<GameplaySettingsTab />} />
+          <Route path="gameplay" element={<GameplayTab />} />
           <Route path="members" element={<MemberAdminTab />} />
           <Route path="custom" element={<CustomizationTab />} />
           <Route path="ranking" element={<RankingSettingsTab />} />

@@ -1,61 +1,89 @@
 import React, { useState, useEffect } from 'react';
 import { Typography, Box, Button, MenuItem, TextField, CircularProgress, Alert } from '@mui/material';
-import { collection, addDoc, getDocs, Timestamp } from 'firebase/firestore';
+import { collection, addDoc, Timestamp, doc, getDoc } from 'firebase/firestore';
 import { db } from '../Backend/firebase';
 import { useAuth } from '../Backend/AuthProvider';
 import { InternalBox } from '../Backend/InternalBox';
-
-export interface Score {
-  player1: number;
-  player2: number;
-}
-
-export interface Match {
-  id?: string;
-  player1Id: string;
-  player2Id: string;
-  sport: string;
-  score: Score;
-  winnerId: string;
-  createdAt: Timestamp;
-  status: 'completed';
-}
+import type {Match, MatchTeam} from '../types/matches';
+import type { SportSettings } from '../types/sports';
+import { useParams } from 'react-router-dom';
 
 // Available sports for company leagues
-const sports = ['Ping Pong', 'Foosball', 'Pool', 'Basketball', 'Air Hockey'];
 
 const RecordGame: React.FC = () => {
+  const { leagueId } = useParams<{ leagueId: string }>();
   const { user } = useAuth();
   const [opponents, setOpponents] = useState<any[]>([]);
   const [sport, setSport] = useState('');
   const [opponentId, setOpponentId] = useState('');
-  const [score, setScore] = useState<Score>({ player1: 0, player2: 0 });
+  const [score, setScore] = useState<{ player1: number; player2: number }>({ player1: 0, player2: 0 });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
+  const [members, setMembers] = useState<any[]>([]);
+  const [league, setLeague] = useState<any>(null);
+  const [sports, setSports] = useState<string[]>(['Ping Pong Singles', 'Ping Pong Doubles', 'Foosball', 'Pool']);
+
+  useEffect(() => {
+    const fetchLeague = async () => {
+      if (!leagueId) return;
+
+      try {
+        const leagueRef = doc(db, 'leagues', leagueId);
+        const leagueSnap = await getDoc(leagueRef);
+        if (!leagueSnap.exists()) {
+          setMembers([]);
+          setLoading(false);
+          return;
+        }
+        const leagueData = leagueSnap.data();
+        setLeague(leagueData);
+        setMembers(leagueData.members || []);
+        setSports(leagueData.sports || ['didnt work']);
+        setSport(leagueData.sports[0] || 'Ping Pong Singles'); // Default to first sport
+      } catch (err) {
+        console.error('Failed to fetch league:', err);
+        setError('Unable to load league data.');
+      }
+    };
+
+    fetchLeague();
+  }, [leagueId]);
+  
+
+
 
   useEffect(() => {
     const fetchOpponents = async () => {
-      if (!user) return;
+      if (!user || !league || !league.members) return;
       
       try {
-        const usersSnapshot = await getDocs(collection(db, 'users'));
-        const allUsers = usersSnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
+        // Fetch only league members as opponents
+        const memberPromises = league.members.map(async (memberId: string) => {
+          const userRef = doc(db, 'users', memberId);
+          const userSnap = await getDoc(userRef);
+          if (userSnap.exists()) {
+            return {
+              id: memberId,
+              ...userSnap.data()
+            };
+          }
+          return null;
+        });
+        
+        const allMembers = (await Promise.all(memberPromises)).filter(Boolean);
         
         // Filter out current user
-        const opponents = allUsers.filter(u => u.id !== user.uid);
+        const opponents = allMembers.filter(u => u.id !== user.uid);
         setOpponents(opponents);
       } catch (err) {
         console.error('Error fetching opponents:', err);
-        setError('Failed to load opponents');
+        setError('Failed to load league members');
       }
     };
 
     fetchOpponents();
-  }, [user]);
+  }, [user, league]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,16 +123,20 @@ const RecordGame: React.FC = () => {
 
     try {
       const match: Match = {
-        player1Id: user.uid,
-        player2Id: opponentId,
-        sport,
-        score,
-        winnerId,
-        createdAt: Timestamp.now(),
-        status: 'completed'
+        id: '',
+        date: new Date().toISOString(),
+        leagueId: leagueId!,
+        createdBy: user.uid,
+        sportId: sport,
+        status: 'completed',
+        teams: [
+          { players: [user.uid], score: score.player1, winner: winnerId === user.uid },
+          { players: [opponentId], score: score.player2, winner: winnerId === opponentId }
+        ]
       };
 
-      await addDoc(collection(db, 'matches'), match);
+      const matchRef = collection(db, 'leagues', leagueId!, 'matches');
+      await addDoc(matchRef, match);
       
       setSuccess('Match recorded successfully!');
       
@@ -147,9 +179,9 @@ const RecordGame: React.FC = () => {
           onChange={(e) => setSport(e.target.value)}
           required
         >
-          {sports.map((sportOption) => (
-            <MenuItem key={sportOption} value={sportOption}>
-              {sportOption}
+          {(league?.sports || sports).map((sport: string) => (
+            <MenuItem key={sport} value={sport}>
+              {sport}
             </MenuItem>
           ))}
         </TextField>

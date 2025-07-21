@@ -38,9 +38,9 @@ export interface Player {
   email?: string;
   leagues?: string[];
   avatarUrl?: string;
-  pingpong: PingPongStats;
-  foosball: FoosballStats;
-  pool: PoolStats;
+  sportStats: {
+    [key in GameType]?: PingPongStats | FoosballStats | PoolStats;
+  }
 }
 
 const STORAGE_KEY = 'corporate-sports-players';

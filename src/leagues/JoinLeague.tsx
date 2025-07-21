@@ -3,7 +3,7 @@ import { collection, getDocs, query, where, updateDoc, doc, arrayUnion } from 'f
 import { db } from '../Backend/firebase';
 import { InternalBox } from '../Backend/InternalBox';
 import { FormControl, InputLabel, Select, MenuItem, Typography, Button, CircularProgress, Box, TextField } from '@mui/material';
-import { type LeagueSettings } from './league';
+import { type LeagueSettings } from '../types/league';
 import { useAuth } from '../Backend/AuthProvider';
 
 import { sendMessage, addUserToLeagueConversations} from '../messaging';
@@ -110,7 +110,10 @@ const JoinLeague: React.FC = () => {
           content: `${user.displayName || user.email || user.uid} has requested to join the league "${league.name}".`,
           recipientIds: [league.adminId],
           messageType: "notification",
-          read: false
+          read: false,
+          meta: {
+            leagueId: league.id
+          }
         });
         await sendMessage(league.reviewConvoId, {
           conversationId: league.reviewConvoId,

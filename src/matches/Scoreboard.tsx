@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 import { db } from '../Backend/firebase';
 import { Typography, Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Select, MenuItem, FormControl, InputLabel, CircularProgress, Button } from '@mui/material';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 import { InternalBox } from '../Backend/InternalBox';
+import { type Player } from '../types/playerDb';
 
 interface PlayerStats {
   uid: string;
@@ -22,18 +23,87 @@ interface PlayerStats {
 const sports = ['Ping Pong Singles', 'Ping Pong Doubles', 'Foosball', 'Pool'];
 
 const Scoreboard: React.FC = () => {
+  const { leagueId } = useParams<{ leagueId: string }>();
+  const [league, setLeague] = useState<any>(null);
   const [players, setPlayers] = useState<any[]>([]);
   const [sport, setSport] = useState('Ping Pong Singles');
   const [loading, setLoading] = useState(true);
   const location = useLocation();
+  const [members, setMembers] = useState<Player[]>([]);
+
+  useEffect(() => {
+    if (league && league.members) {
+      fetchMembers();
+    }
+  }, [league]);
+  
+    const fetchMembers = async () => {
+      if (!league || !league.members) return;
+      
+      try {
+        const memberPromises = league.members.map(async (memberId: string) => {
+          const userRef = doc(db, 'users', memberId);
+          const userSnap = await getDoc(userRef);
+          if (userSnap.exists()) {
+            const userData = userSnap.data();
+            return {
+              uid: memberId,
+              email: userData.email || 'No email',
+              displayName: userData.displayName,
+              isAdmin: memberId === league.adminId
+            };
+          }
+          return null;
+        });
+  
+        const membersData = await Promise.all(memberPromises);
+        setMembers(membersData.filter(member => member !== null) as Player[]);
+      } catch (error) {
+        console.error('Error fetching members:', error);
+      }
+    };
 
   // Refetch data every time the Scoreboard tab is entered
   const fetchData = async () => {
     setLoading(true);
-    const usersSnap = await getDocs(collection(db, 'users'));
-    const users = usersSnap.docs.map(doc => ({ ...doc.data(), uid: doc.id }));
-    setPlayers(users);
-    setLoading(false);
+    if (!leagueId) {
+      setPlayers([]);
+      setLoading(false);
+      return;
+    }
+    try {
+      // Fetch the league document
+      const leagueRef = doc(db, 'leagues', leagueId);
+      const leagueSnap = await getDoc(leagueRef);
+      if (!leagueSnap.exists()) {
+        setPlayers([]);
+        setLoading(false);
+        return;
+      }
+      const leagueData = leagueSnap.data();
+      setLeague(leagueData);
+
+      // Fetch all member user documents
+      const memberIds = leagueData.members || [];
+      const memberPromises = memberIds.map(async (memberId: string) => {
+        const userRef = doc(db, 'users', memberId);
+        const userSnap = await getDoc(userRef);
+        if (userSnap.exists()) {
+          return { ...userSnap.data(), uid: memberId };
+        }
+        return null;
+      });
+      const users = (await Promise.all(memberPromises)).filter(Boolean);
+      setPlayers(users);
+
+      // Optionally set the default sport
+      setSport(sports[0]);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      setPlayers([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {

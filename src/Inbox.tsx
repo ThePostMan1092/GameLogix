@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, Alert, CircularProgress } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
+import { Box, Typography, Alert, CircularProgress, Button } from '@mui/material';
 import { useAuth } from './Backend/AuthProvider';
 import { db } from './Backend/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
@@ -8,6 +9,7 @@ import { getUserConversations } from './messaging';
 
 const Inbox: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [conversations, setConversations] = useState<any[]>([]); 
   console.log("conversations:", conversations);
   const [loading, setLoading] = useState(true);
@@ -76,6 +78,13 @@ const Inbox: React.FC = () => {
             <Box key={msg.id} p={2} borderBottom="1px solid #eee">
               <Typography variant="subtitle2">{msg.subject}</Typography>
               <Typography variant="body2">{msg.content}</Typography>
+              { msg.meta?.leagueId && (
+                <Box>
+                  <Button onClick={() => navigate(`/league/${msg.meta?.leagueId}/LeagueSettings/basic`)}>
+                    review
+                  </Button>
+                </Box>
+              )}
               <Typography variant="caption" color="text.secondary">
                 {new Date(msg.timestamp?.toDate()).toLocaleString()}
               </Typography>

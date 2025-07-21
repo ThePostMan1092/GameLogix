@@ -20,6 +20,7 @@ export interface LeagueSettings {
   maxMatchesPerWeek?: number;
   matchExpirationHours?: number;
   matchVerification: 'manual' | 'automatic' | 'both-confirm';
+  matchReporting: 'anyone' | 'admin-only' | 'member-only';
 
   // 👥 Member & Admin Controls
   allowMultipleAdmins?: boolean;
