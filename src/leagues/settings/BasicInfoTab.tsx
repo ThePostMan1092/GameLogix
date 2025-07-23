@@ -22,13 +22,15 @@ const BasicInfoTab: React.FC = () => {
   const [league, setLeague] = useState<any>(null);
   const [editLeague, setEditLeague] = useState<any>(null);
   const { user } = useAuth();
-  const [conversations, setConversations] = useState<any[]>([]); 
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [reviews, setReviews] = useState<any[]>([]);
   const [members, setMembers] = useState<LeagueMember[]>([]);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedMember, setSelectedMember] = useState<string | null>(null);
+
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+
+  console.log(loading, error)
 
     useEffect(() => {
     if (league && league.members) {
@@ -163,7 +165,6 @@ const BasicInfoTab: React.FC = () => {
     
     try {
       const convos = await getUserConversations(user.uid);
-      setConversations(convos);
 
       const reviewConvos = convos.filter(c => c.type === 'review');
 

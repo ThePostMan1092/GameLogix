@@ -1,14 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 // import useAuth from its correct location
-import { useAuth } from '../../Backend/AuthProvider';
-import { doc, getDoc, collection, query, where, getDocs, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
-// Adjust the path below if your firebase file is in a different location
-import { db } from '../../Backend/firebase';
-import { useParams } from 'react-router-dom';
-import { Box, Paper, Typography, Divider, Grid, TextField, Alert, Button, Table, TableContainer, 
-  TableRow, TableCell, TableHead, TableBody, Menu, MenuItem, IconButton, Chip} from '@mui/material';
-import { getUserConversations, addUserToLeagueConversations,  updateJoinRequestStatus, sendMessage } from '../../messaging';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
+import { Box, Paper, Typography, Divider, Grid} from '@mui/material';
+
 
 const CustomizationTab: React.FC = () => {
   return (

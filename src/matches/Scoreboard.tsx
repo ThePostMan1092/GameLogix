@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../Backend/firebase';
 import { Typography, Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Select, MenuItem, FormControl, InputLabel, CircularProgress, Button } from '@mui/material';
 import { useLocation, useParams } from 'react-router-dom';
@@ -108,6 +108,7 @@ const Scoreboard: React.FC = () => {
 
   useEffect(() => {
     fetchData();
+    console.log(members)
   }, [sport, location.pathname]);
 
   // Calculate stats for each player from user stats

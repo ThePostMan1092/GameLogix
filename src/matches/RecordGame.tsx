@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Typography, Box, Button, MenuItem, TextField, CircularProgress, Alert } from '@mui/material';
-import { collection, addDoc, Timestamp, doc, getDoc } from 'firebase/firestore';
+import { collection, addDoc, doc, getDoc } from 'firebase/firestore';
 import { db } from '../Backend/firebase';
 import { useAuth } from '../Backend/AuthProvider';
 import { InternalBox } from '../Backend/InternalBox';
-import type {Match, MatchTeam} from '../types/matches';
-import type { SportSettings } from '../types/sports';
+import type {Match} from '../types/matches';
 import { useParams } from 'react-router-dom';
 
 // Available sports for company leagues
@@ -20,7 +19,6 @@ const RecordGame: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
-  const [members, setMembers] = useState<any[]>([]);
   const [league, setLeague] = useState<any>(null);
   const [sports, setSports] = useState<string[]>(['Ping Pong Singles', 'Ping Pong Doubles', 'Foosball', 'Pool']);
 
@@ -32,13 +30,11 @@ const RecordGame: React.FC = () => {
         const leagueRef = doc(db, 'leagues', leagueId);
         const leagueSnap = await getDoc(leagueRef);
         if (!leagueSnap.exists()) {
-          setMembers([]);
           setLoading(false);
           return;
         }
         const leagueData = leagueSnap.data();
         setLeague(leagueData);
-        setMembers(leagueData.members || []);
         setSports(leagueData.sports || ['didnt work']);
         setSport(leagueData.sports[0] || 'Ping Pong Singles'); // Default to first sport
       } catch (err) {

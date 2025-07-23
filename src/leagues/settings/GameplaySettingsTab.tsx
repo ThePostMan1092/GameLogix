@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
-// import useAuth from its correct location
-import { useAuth } from '../../Backend/AuthProvider';
-import { doc, getDoc, collection, getDocs, addDoc, deleteDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, getDocs, deleteDoc } from 'firebase/firestore';
 // Adjust the path below if your firebase file is in a different location
 import { db } from '../../Backend/firebase';
 import { useParams } from 'react-router-dom';
@@ -18,32 +16,47 @@ import {
   Chip, 
   Accordion, 
   AccordionSummary, 
-  AccordionDetails,
-  FormControlLabel,
-  Switch
+  AccordionDetails
 } from '@mui/material';
 import { ExpandMore as ExpandMoreIcon, Delete as DeleteIcon } from '@mui/icons-material';
-import type { SportSettings, PingPongSettings, SpikeballSettings, CustomSportSettings } from '../../types/sports';
+import SettingsForm from './settingsForm';
+
 
 const GameplayTab: React.FC = () => {
   const { leagueId } = useParams();
   const [editLeague, setEditLeague] = useState<any>(null);
-  const { user } = useAuth();
+  const [leagueSports, setLeagueSports] = useState<any[]>([]);
   const [error, setError] = useState('');
-  const [leagueSports, setLeagueSports] = useState<SportSettings[]>([]);
   const [showAddSport, setShowAddSport] = useState(false);
   const [selectedSportType, setSelectedSportType] = useState<'Ping Pong' | 'Spikeball' | 'Custom'>('Ping Pong');
   const [newSportDisplayName, setNewSportDisplayName] = useState('');
-  const [expandedSport, setExpandedSport] = useState<string | false>(false);
-  const [pendingChanges, setPendingChanges] = useState<Record<string, Partial<SportSettings>>>({});
 
   const availableSportTypes = ['Ping Pong', 'Spikeball', 'Custom'] as const;
+
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
     if (!leagueId) return;
     fetchLeagueData();
     fetchLeagueSports();
   }, [leagueId]);
+
+  const handleRemoveSport = async (sportId: string) => {
+    try {
+      await deleteDoc(doc(db, 'leagues', leagueId as string, 'sports', sportId));
+      setLeagueSports(prev => prev.filter(sport => sport.id !== sportId));
+    } catch (err) {
+      console.error('Error removing sport:', err);
+      setError('Failed to remove sport');
+    }
+  };
+
+  const handleChange = (field: string, value: any) => {
+    setEditLeague((prev: any) => ({
+      ...prev,
+      [field]: value
+    }));
+  };
 
   const fetchLeagueData = async () => {
     try {
@@ -60,451 +73,13 @@ const GameplayTab: React.FC = () => {
 
   const fetchLeagueSports = async () => {
     try {
-      const sportsRef = collection(db, 'leagues', leagueId as string, 'sports');
-      const sportsSnap = await getDocs(sportsRef);
-      const sports = sportsSnap.docs.map(doc => ({ 
-        id: doc.id, 
-        ...doc.data() 
-      })) as SportSettings[];
-      setLeagueSports(sports);
+      const sportsQuery = collection(db, 'leagues', leagueId as string, 'sports');
+      const sportsSnap = await getDocs(sportsQuery);
+      const sportsData = sportsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setLeagueSports(sportsData);
     } catch (err) {
       console.error('Error fetching league sports:', err);
-    }
-  };
-
-  const handleAddSport = async () => {
-    if (!newSportDisplayName.trim()) {
-      setError('Sport display name is required');
-      return;
-    }
-
-    try {
-      let sportData: Omit<SportSettings, 'id'>;
-      
-      if (selectedSportType === 'Ping Pong') {
-        sportData = {
-          type: 'Ping Pong',
-          displayName: newSportDisplayName.trim(),
-          trackedValue: 'points',
-          trackSets: false,
-          trackIndividualPoints: true,
-          trackMistakes: false,
-          adjustableSettings: true,
-          pointsTo: 21,
-          serveRotation: 2
-        } as PingPongSettings;
-      } else if (selectedSportType === 'Spikeball') {
-        sportData = {
-          type: 'Spikeball',
-          displayName: newSportDisplayName.trim(),
-          trackedValue: 'points',
-          trackPoints: true,
-          trackMistakes: false,
-          adjustableSettings: true,
-          pointsTo: 21,
-          serveRotation: 4,
-          sixFootRule: true
-        } as SpikeballSettings;
-      } else {
-        sportData = {
-          type: 'Custom',
-          displayName: newSportDisplayName.trim(),
-          description: '',
-          scoringRules: {
-            label: 'Points',
-            maxScore: 21
-          }
-        } as CustomSportSettings;
-      }
-
-      const sportsRef = collection(db, 'leagues', leagueId as string, 'sports');
-      await addDoc(sportsRef, {
-        ...sportData,
-        createdAt: new Date(),
-        createdBy: user?.uid
-      });
-      
-      // Reset form
-      setNewSportDisplayName('');
-      setSelectedSportType('Ping Pong');
-      setShowAddSport(false);
-      setError('');
-      
-      // Refresh sports list
-      fetchLeagueSports();
-    } catch (err) {
-      console.error('Error adding sport:', err);
-      setError('Failed to add sport');
-    }
-  };
-
-  const handleRemoveSport = async (sportId: string) => {
-    try {
-      const sportRef = doc(db, 'leagues', leagueId as string, 'sports', sportId);
-      await deleteDoc(sportRef);
-      fetchLeagueSports();
-    } catch (err) {
-      console.error('Error removing sport:', err);
-      setError('Failed to remove sport');
-    }
-  };
-
-  const handleChange = (field: string, value: string) => {
-    setEditLeague((prev: any) => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  const handleAccordionChange = (sportId: string) => (_event: React.SyntheticEvent, isExpanded: boolean) => {
-    setExpandedSport(isExpanded ? sportId : false);
-  };
-
-  const saveSportChanges = async (sportId: string) => {
-    const changes = pendingChanges[sportId];
-    console.log('Attempting to save changes for sport:', sportId, 'Changes:', changes);
-    
-    if (!changes || Object.keys(changes).length === 0) {
-      console.log('No changes to save');
-      return; // No changes to save
-    }
-
-    try {
-      const sportRef = doc(db, 'leagues', leagueId as string, 'sports', sportId);
-      console.log('Updating Firestore document with:', changes);
-      await updateDoc(sportRef, changes);
-      
-      // Clear pending changes for this sport
-      setPendingChanges(prev => {
-        const updated = { ...prev };
-        delete updated[sportId];
-        return updated;
-      });
-      
-      // Refresh sports list
-      fetchLeagueSports();
-      setError('');
-      console.log('Sport changes saved successfully');
-    } catch (err) {
-      console.error('Error saving sport changes:', err);
-      setError('Failed to save sport changes');
-    }
-  };
-
-  const renderSportSettings = (sport: SportSettings) => {
-    // Get current values (either from pending changes or original sport data)
-    const currentValues = { ...sport, ...(pendingChanges[sport.id] || {}) };
-    
-    const updateField = (field: string, value: any) => {
-      console.log('Updating field:', field, 'with value:', value, 'for sport:', sport.id);
-      setPendingChanges(prev => ({
-        ...prev,
-        [sport.id]: {
-          ...prev[sport.id],
-          [field]: value
-        }
-      }));
-    };
-
-    const updateNestedField = (parentField: string, field: string, value: any) => {
-      const currentParent = (sport as any)[parentField] || {};
-      const pendingParent = (pendingChanges[sport.id] as any)?.[parentField] || {};
-      
-      setPendingChanges(prev => ({
-        ...prev,
-        [sport.id]: {
-          ...prev[sport.id],
-          [parentField]: {
-            ...currentParent,
-            ...pendingParent,
-            [field]: value
-          }
-        }
-      }));
-    };
-
-    const hasChanges = !!(pendingChanges[sport.id] && Object.keys(pendingChanges[sport.id]).length > 0);
-    console.log('Has changes for sport:', Object.keys(pendingChanges[sport.id]? pendingChanges[sport.id] : {}));
-    console.log("has changes", hasChanges);
-
-    switch (sport.type) {
-      case 'Ping Pong':
-        const pingPongSport = currentValues as PingPongSettings;
-        return (
-          <Box>
-            <Grid container spacing={3}>
-              <Grid size={6}>
-                <TextField
-                  label="Display Name"
-                  value={pingPongSport.displayName}
-                  onChange={(e) => updateField('displayName', e.target.value)}
-                  fullWidth
-                  size="small"
-                />
-              </Grid>
-              <Grid size={6}>
-                <TextField
-                  select
-                  label="Tracked Value"
-                  value={pingPongSport.trackedValue}
-                  onChange={(e) => updateField('trackedValue', e.target.value)}
-                  fullWidth
-                  size="small"
-                >
-                  <MenuItem value="points">Points</MenuItem>
-                  <MenuItem value="sets">Sets</MenuItem>
-                  <MenuItem value="games">Games</MenuItem>
-                </TextField>
-              </Grid>
-              <Grid size={6}>
-                <TextField
-                  label="Points To Win"
-                  type="number"
-                  value={pingPongSport.pointsTo}
-                  onChange={(e) => updateField('pointsTo', Number(e.target.value))}
-                  fullWidth
-                  size="small"
-                  inputProps={{ min: 1 }}
-                />
-              </Grid>
-              <Grid size={6}>
-                <TextField
-                  label="Serve Rotation"
-                  type="number"
-                  value={pingPongSport.serveRotation}
-                  onChange={(e) => updateField('serveRotation', Number(e.target.value))}
-                  fullWidth
-                  size="small"
-                  inputProps={{ min: 1 }}
-                />
-              </Grid>
-              <Grid size={12}>
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                  {pingPongSport.trackedValue !== 'winner' && (
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={pingPongSport.trackSets}
-                        onChange={(e) => updateField('trackSets', e.target.checked)}
-                      />
-                    }
-                    label="Track Sets"
-                  />
-                  )}
-                  {pingPongSport.trackedValue === 'points' && (
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={pingPongSport.trackIndividualPoints}
-                        onChange={(e) => updateField('trackIndividualPoints', e.target.checked)}
-                      />
-                    }
-                    label="Track Individual Points"
-                  />
-                  )}
-                  {pingPongSport.trackIndividualPoints  && (
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={pingPongSport.trackMistakes}
-                        onChange={(e) => updateField('trackMistakes', e.target.checked)}
-                      />
-                    }
-                    label="Track Mistakes"
-                  />
-                  )}
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={pingPongSport.adjustableSettings}
-                        onChange={(e) => updateField('adjustableSettings', e.target.checked)}
-                      />
-                    }
-                    label="Allow Adjustable Settings"
-                  />
-                </Box>
-              </Grid>
-            </Grid>
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
-              <Button
-                variant={hasChanges ? 'contained' : 'outlined'}
-                onClick={() => saveSportChanges(sport.id)}
-                disabled={!hasChanges}
-                color={hasChanges ? 'primary' : 'inherit'}
-              >
-                Save Sport
-              </Button>
-            </Box>
-          </Box>
-        );
-
-      case 'Spikeball':
-        const spikeballSport = currentValues as SpikeballSettings;
-        return (
-          <Box>
-            <Grid container spacing={3}>
-              <Grid size={6}>
-                <TextField
-                  label="Display Name"
-                  value={spikeballSport.displayName}
-                  onChange={(e) => updateField('displayName', e.target.value)}
-                  fullWidth
-                  size="small"
-                />
-              </Grid>
-              <Grid size={6}>
-                <TextField
-                  select
-                  label="Tracked Value"
-                  value={spikeballSport.trackedValue}
-                  onChange={(e) => updateField('trackedValue', e.target.value)}
-                  fullWidth
-                  size="small"
-                >
-                  <MenuItem value="points">Points</MenuItem>
-                  <MenuItem value="sets">Sets</MenuItem>
-                  <MenuItem value="games">Games</MenuItem>
-                </TextField>
-              </Grid>
-              <Grid size={6}>
-                <TextField
-                  label="Points To Win"
-                  type="number"
-                  value={spikeballSport.pointsTo}
-                  onChange={(e) => updateField('pointsTo', Number(e.target.value))}
-                  fullWidth
-                  size="small"
-                  inputProps={{ min: 1 }}
-                />
-              </Grid>
-              <Grid size={6}>
-                <TextField
-                  label="Serve Rotation"
-                  type="number"
-                  value={spikeballSport.serveRotation}
-                  onChange={(e) => updateField('serveRotation', Number(e.target.value))}
-                  fullWidth
-                  size="small"
-                  inputProps={{ min: 1 }}
-                />
-              </Grid>
-              <Grid size={12}>
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={spikeballSport.trackPoints}
-                        onChange={(e) => updateField('trackPoints', e.target.checked)}
-                      />
-                    }
-                    label="Track Points"
-                  />
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={spikeballSport.trackMistakes}
-                        onChange={(e) => updateField('trackMistakes', e.target.checked)}
-                      />
-                    }
-                    label="Track Mistakes"
-                  />
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={spikeballSport.adjustableSettings}
-                        onChange={(e) => updateField('adjustableSettings', e.target.checked)}
-                      />
-                    }
-                    label="Allow Adjustable Settings"
-                  />
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={spikeballSport.sixFootRule}
-                        onChange={(e) => updateField('sixFootRule', e.target.checked)}
-                      />
-                    }
-                    label="Six Foot Rule"
-                  />
-                </Box>
-              </Grid>
-            </Grid>
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
-              <Button
-                variant={hasChanges ? 'contained' : 'outlined'}
-                onClick={() => saveSportChanges(sport.id)}
-                disabled={!hasChanges}
-                color={hasChanges ? 'primary' : 'inherit'}
-              >
-                Save Sport
-              </Button>
-            </Box>
-          </Box>
-        );
-
-      case 'Custom':
-        const customSport = currentValues as CustomSportSettings;
-        return (
-          <Box>
-            <Grid container spacing={3}>
-              <Grid size={6}>
-                <TextField
-                  label="Display Name"
-                  value={customSport.displayName}
-                  onChange={(e) => updateField('displayName', e.target.value)}
-                  fullWidth
-                  size="small"
-                />
-              </Grid>
-              <Grid size={6}>
-                <TextField
-                  label="Scoring Label"
-                  value={customSport.scoringRules.label}
-                  onChange={(e) => updateNestedField('scoringRules', 'label', e.target.value)}
-                  fullWidth
-                  size="small"
-                  placeholder="e.g., Points, Goals, Rounds"
-                />
-              </Grid>
-              <Grid size={6}>
-                <TextField
-                  label="Max Score"
-                  type="number"
-                  value={customSport.scoringRules.maxScore}
-                  onChange={(e) => updateNestedField('scoringRules', 'maxScore', Number(e.target.value))}
-                  fullWidth
-                  size="small"
-                  inputProps={{ min: 1 }}
-                />
-              </Grid>
-              <Grid size={12}>
-                <TextField
-                  label="Description"
-                  value={customSport.description}
-                  onChange={(e) => updateField('description', e.target.value)}
-                  fullWidth
-                  multiline
-                  rows={3}
-                  size="small"
-                  placeholder="Describe the rules and how this sport is played..."
-                />
-              </Grid>
-            </Grid>
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
-              <Button
-                variant={hasChanges ? 'contained' : 'outlined'}
-                onClick={() => saveSportChanges(sport.id)}
-                disabled={!hasChanges}
-                color={hasChanges ? 'primary' : 'inherit'}
-              >
-                Save Sport
-              </Button>
-            </Box>
-          </Box>
-        );
-
-      default:
-        return <Typography>Unknown sport type</Typography>;
+      setError('Failed to load league sports');
     }
   };
 
@@ -517,7 +92,7 @@ const GameplayTab: React.FC = () => {
 
       <Divider style={{ margin: '16px 0' }} />
 
-      <Grid container sx={{spacing: 2, px: 4}} >
+      <Grid container spacing={2} sx={{ px: 4 }}>
         <Grid size={3}>
           <Typography variant="h4">Sport Selection</Typography>
         </Grid>
@@ -533,8 +108,6 @@ const GameplayTab: React.FC = () => {
                   {leagueSports.map((sport) => (
                     <Accordion
                       key={sport.id}
-                      expanded={expandedSport === sport.id}
-                      onChange={handleAccordionChange(sport.id)}
                       sx={{ mb: 1 }}
                     >
                       <AccordionSummary
@@ -567,14 +140,16 @@ const GameplayTab: React.FC = () => {
                       </AccordionSummary>
                       <AccordionDetails>
                         <Box sx={{ p: 2 }}>
-                          {renderSportSettings(sport)}
+                          <h1>{sport.displayName}</h1>
                         </Box>
                       </AccordionDetails>
                     </Accordion>
                   ))}
                 </Box>
               )}
-
+              <Button variant="contained" onClick={() => setDialogOpen(true)}>
+                Configure Sport Settings
+              </Button>
               <Button
                 variant="outlined"
                 onClick={() => setShowAddSport(!showAddSport)}
@@ -582,6 +157,11 @@ const GameplayTab: React.FC = () => {
               >
                 {showAddSport ? 'Cancel' : 'Add Sport'}
               </Button>
+              <SettingsForm 
+                open={dialogOpen} 
+                onClose={() => setDialogOpen(false)} 
+                onSportAdded={() => fetchLeagueSports()}
+              />
 
               {showAddSport && (
                 <Box sx={{ border: '1px solid #ccc', borderRadius: 2, p: 2, mt: 2 }}>
@@ -621,13 +201,6 @@ const GameplayTab: React.FC = () => {
 
                   <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
                     <Button
-                      variant="contained"
-                      onClick={handleAddSport}
-                      disabled={!newSportDisplayName.trim()}
-                    >
-                      Save Sport
-                    </Button>
-                    <Button
                       variant="outlined"
                       onClick={() => {
                         setShowAddSport(false);
@@ -648,7 +221,7 @@ const GameplayTab: React.FC = () => {
 
       <Divider style={{ margin: '16px 0' }} />
 
-      <Grid container sx={{spacing: 2, px: 4}} >
+      <Grid container spacing={2} sx={{ px: 4 }}>
         <Grid size={3}>
           <Typography variant="h4">Match Tracking</Typography>
         </Grid>
@@ -716,7 +289,9 @@ const GameplayTab: React.FC = () => {
       </Grid>
 
       <Divider style={{ margin: '16px 0' }} />
+      
     </Paper>
+    
   );
 };
 

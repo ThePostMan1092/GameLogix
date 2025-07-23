@@ -1,5 +1,5 @@
 import { db } from '../Backend/firebase'; // Adjust the import based on your project structure
-import { collection, addDoc, serverTimestamp, query, where, getDocs, orderBy, updateDoc, doc, arrayUnion } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp} from 'firebase/firestore';
 // import { shuffleArray } from '../lib/utils'; // Removed unused and unresolved import
 
 export interface Tournament {

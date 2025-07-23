@@ -1,47 +1,209 @@
-
-type SportType = 'Ping Pong' | 'Foosball' | 'Pool' | 'Basketball' | 'Air Hockey' | 'Spikeball' | 'Custom';
-
-interface BaseSportSettings {
-  id: string; // unique per sport
-  type: SportType;
-  displayName: string;
-  icon?: string;
+export interface CustomStat {
+  name: string;
+  dataType: 'number' | 'time' | 'boolean' | 'text' | 'counter';
+  unit?: string | null;
+  description?: string | null;
+  minValue?: number | null;
+  maxValue?: number | null;
+  defaultValue?: string | number | boolean | null;
+  decimalPlaces?: number;
 }
 
-export interface PingPongSettings extends BaseSportSettings {
-  type: 'Ping Pong';
-  trackedValue: 'points' | 'sets' | 'winner';
-  trackSets: boolean;
-  winBy?: number;
-  trackIndividualPoints: boolean;
-  trackMistakes: boolean;
-  maxSets?: number;
-  pointsTo?: number;
-  serveRotation?: number;
-  adjustableSettings: boolean;
+export interface SpecialRule {
+  name: string;
+  description: string;
 }
 
-export interface SpikeballSettings extends BaseSportSettings {
-  type: 'Spikeball';
-  trackedValue: 'points' | 'winner';
-  winBy?: number;
-  trackPoints: boolean;
-  trackMistakes: boolean;
-  pointsTo?: number;
-  serveRotation?: number;
-  sixFootRule?: boolean;
-  adjustableSettings: boolean;
-}
-
-export interface CustomSportSettings extends BaseSportSettings {
-  type: 'Custom';
+export interface Sport {
+  id: string;
+  name: string;
   description?: string;
-  scoringRules: {
-    label: string;
-    pointsPerWin?: number;
-    maxScore?: number;
-    [key: string]: any; // <-- allows arbitrary fields
-  };
+  gameType: 'solo' | 'competition';
+  teamFormat: 'individuals' | 'teams';
+  recordLayout?: 'table' | 'cards';
+  numberOfTeams?: number;
+  playersPerTeam?: number;
+  trackByPlayer: boolean;
+  useRounds: boolean;
+  roundsName?: string;
+  maxRounds?: number;
+  trackPerRound?: boolean;
+  winCondition: 'First to point limit' | 'First to round limit' | 'Most points';
+  winPoints?: number;
+  winRounds?: number;
+  canTie: boolean;
+  winBy?: number; 
+  playStyle?: 'turn-based' | 'simultaneous';
+  activeTrack: boolean;
+  customStats?: CustomStat[]; // New structured stats
+  customSpecialRules?: SpecialRule[]; // New structured special rules
+  createdAt: Date;
+  createdBy: string; // user ID
+  adjustable: boolean;
 }
 
-export type SportSettings = PingPongSettings | SpikeballSettings | CustomSportSettings;
+const basketballFullTeam: Sport = {
+  id: 'uuid-or-sport-name',
+  name: 'Basketball',
+  gameType: 'competition',
+  recordLayout: 'cards',
+  teamFormat: 'teams',
+  numberOfTeams: 2,
+  playersPerTeam: 5,
+  useRounds: true,
+  roundsName: 'quarters',
+  maxRounds: 4,
+  winCondition: 'Most points',
+  canTie: false,
+  playStyle: 'simultaneous',
+  trackByPlayer: false,
+  activeTrack: false,
+  customStats: [
+    {
+      name: 'Points',
+      dataType: 'number',
+      unit: 'points',
+      description: 'Points scored by the team',
+      minValue: 0,
+      maxValue: 200,
+      defaultValue: 0,
+      decimalPlaces: 0
+    },
+    {
+      name: 'Fouls',
+      dataType: 'counter',
+      unit: 'fouls',
+      description: 'Team fouls committed',
+      defaultValue: 0
+    }
+  ],
+  customSpecialRules: [
+    {
+      name: 'Shot Clock',
+      description: '24 seconds to attempt a shot'
+    },
+    {
+      name: 'Three Point Line',
+      description: 'Shots beyond the arc count for 3 points'
+    }
+  ],
+  createdAt: new Date(),
+  createdBy: 'user123',
+  adjustable: true
+}
+
+const pingPongDoubles: Sport = {
+  id: 'uuid-or-sport-name',
+  name: 'Ping Pong Doubles',
+  gameType: 'competition',
+  teamFormat: 'teams',
+  recordLayout: 'cards',
+  numberOfTeams: 2,
+  playersPerTeam: 2,
+  useRounds: true,
+  roundsName: 'sets',
+  trackPerRound: true,
+  winCondition: 'First to round limit',
+  winPoints: 21,
+  winRounds: 2,
+  canTie: false,
+  winBy: 2,
+  playStyle: 'simultaneous',
+  trackByPlayer: false,
+  activeTrack: false,
+  customStats: [
+    {
+      name: 'Points',
+      dataType: 'number',
+      unit: 'points',
+      description: 'Points scored in the set',
+      minValue: 0,
+      maxValue: 21,
+      defaultValue: 0,
+      decimalPlaces: 0
+    },
+    {
+      name: 'Aces',
+      dataType: 'counter',
+      unit: 'aces',
+      description: 'Unreturnable serves',
+      defaultValue: 0
+    }
+  ],
+  customSpecialRules: [
+    {
+      name: '6in Server',
+      description: 'Must throw the ball up 6 inches on the serve before hitting it'
+    },
+    {
+      name: 'Let Serve',
+      description: 'If ball hits net and lands in service area, replay the serve'
+    }
+  ],
+  createdAt: new Date(),
+  createdBy: 'user123',
+  adjustable: true
+}
+
+const bowlingSolo: Sport = {
+  id: 'uuid-or-sport-name',
+  name: 'Bowling Singles',
+  gameType: 'solo',
+  teamFormat: 'individuals',
+  recordLayout: 'table',
+  useRounds: true,
+  roundsName: 'frames',
+  maxRounds: 10,
+  winCondition: 'Most points',
+  canTie: false,
+  playStyle: 'turn-based',
+  trackByPlayer: true,
+  activeTrack: false,
+  customStats: [
+    {
+      name: 'Score',
+      dataType: 'number',
+      unit: 'points',
+      description: 'Total bowling score',
+      minValue: 0,
+      maxValue: 300,
+      defaultValue: 0,
+      decimalPlaces: 0
+    },
+    {
+      name: 'Strikes',
+      dataType: 'counter',
+      unit: 'strikes',
+      description: 'Number of strikes bowled',
+      defaultValue: 0
+    },
+    {
+      name: 'Spares',
+      dataType: 'counter',
+      unit: 'spares', 
+      description: 'Number of spares bowled',
+      defaultValue: 0
+    }
+  ],
+  customSpecialRules: [
+    {
+      name: 'Strike',
+      description: 'Knock down all 10 pins on first roll - score 10 plus next 2 rolls'
+    },
+    {
+      name: 'Spare',
+      description: 'Knock down all 10 pins in two rolls - score 10 plus next 1 roll'
+    },
+    {
+      name: 'Gutter Ball',
+      description: 'Ball goes in gutter - counts as 0 pins knocked down'
+    }
+  ],
+  createdAt: new Date(),
+  createdBy: 'user123',
+  adjustable: true
+}
+
+const sports: Sport[] = [basketballFullTeam, pingPongDoubles, bowlingSolo];
+
+export default sports;
