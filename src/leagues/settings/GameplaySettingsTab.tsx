@@ -22,6 +22,7 @@ import { ExpandMore as ExpandMoreIcon, Delete as DeleteIcon } from '@mui/icons-m
 import SettingsForm from './settingsForm';
 
 
+
 const GameplayTab: React.FC = () => {
   const { leagueId } = useParams();
   const [editLeague, setEditLeague] = useState<any>(null);
@@ -117,7 +118,7 @@ const GameplayTab: React.FC = () => {
                       >
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', pr: 2 }}>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                            <Typography variant="h6">{sport.displayName}</Typography>
+                            <Typography variant="h6">{sport.name}</Typography>
                             <Chip
                               label={sport.type}
                               color={sport.type === 'Custom' ? 'secondary' : 'primary'}
@@ -149,13 +150,6 @@ const GameplayTab: React.FC = () => {
               )}
               <Button variant="contained" onClick={() => setDialogOpen(true)}>
                 Configure Sport Settings
-              </Button>
-              <Button
-                variant="outlined"
-                onClick={() => setShowAddSport(!showAddSport)}
-                sx={{ mb: 2 }}
-              >
-                {showAddSport ? 'Cancel' : 'Add Sport'}
               </Button>
               <SettingsForm 
                 open={dialogOpen} 

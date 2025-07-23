@@ -1,3 +1,6 @@
+export const sportCategory = ['Ping Pong', 'Basketball', 'Bowling', 'Spikeball'] as const;
+
+
 export interface CustomStat {
   name: string;
   dataType: 'number' | 'time' | 'boolean' | 'text' | 'counter';
@@ -16,6 +19,7 @@ export interface SpecialRule {
 
 export interface Sport {
   id: string;
+  sportCategory: typeof sportCategory[number]; // restrict to allowed categories
   name: string;
   description?: string;
   gameType: 'solo' | 'competition';
@@ -89,7 +93,8 @@ const basketballFullTeam: Sport = {
   ],
   createdAt: new Date(),
   createdBy: 'user123',
-  adjustable: true
+  adjustable: true,
+  sportCategory: 'Basketball'
 }
 
 const pingPongDoubles: Sport = {
@@ -142,7 +147,8 @@ const pingPongDoubles: Sport = {
   ],
   createdAt: new Date(),
   createdBy: 'user123',
-  adjustable: true
+  adjustable: true,
+  sportCategory: 'Ping Pong'
 }
 
 const bowlingSolo: Sport = {
@@ -201,7 +207,8 @@ const bowlingSolo: Sport = {
   ],
   createdAt: new Date(),
   createdBy: 'user123',
-  adjustable: true
+  adjustable: true,
+  sportCategory: 'Bowling'
 }
 
 const sports: Sport[] = [basketballFullTeam, pingPongDoubles, bowlingSolo];

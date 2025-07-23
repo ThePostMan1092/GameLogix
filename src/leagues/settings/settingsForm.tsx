@@ -10,7 +10,7 @@ import RadioGroup from '@mui/material/RadioGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import FormLabel from '@mui/material/FormLabel';
 import FormControl from '@mui/material/FormControl';
-import { type Sport } from '../../types/sports.ts'; 
+import { type Sport, sportCategory } from '../../types/sports.ts'; 
 import sports from '../../types/sports.ts'; // Import the default export
 import { collection, addDoc } from 'firebase/firestore';
 import { db } from '../../Backend/firebase';
@@ -71,9 +71,11 @@ export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded
       const predefinedSport = sports.find((s: Sport) => s.name === selectedValue);
       if (predefinedSport) {
         setSport(predefinedSport);
+        console.log('Selected sport:', predefinedSport);
         // Pre-populate form data with the sport's preset configuration
         setFormData({
             name: predefinedSport.name || '',
+            sportCategory: predefinedSport.sportCategory || '',
             description: predefinedSport.description || '',
             gameType: predefinedSport.gameType || '',
             teamFormat: predefinedSport.teamFormat || '',
@@ -91,6 +93,7 @@ export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded
             playStyle: predefinedSport.playStyle || '',
             customStats: predefinedSport.customStats ? predefinedSport.customStats : [],
             customSpecialRules: predefinedSport.customSpecialRules ? predefinedSport.customSpecialRules: [],
+            adjustable: predefinedSport.adjustable ?? true,
         });
       }
     }
@@ -110,22 +113,19 @@ export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded
 
     try {
       // Create the sport object to save - filter out undefined values
-      const sportData = {
-        name: sport?.name || (formData as any).name || 'Custom Sport',
+      const sportData: any = {
+        name:  (formData as any).name || sport?.name || 'Custom Sport',
+        sportCategory: (formData as any).sportCategory || 'Custom',
         description: (formData as any).description || '',
         gameType: (formData as any).gameType || 'competition',
         teamFormat: (formData as any).teamFormat || 'teams',
-        recordLayout: (formData as any).recordLayout || undefined,
         numberOfTeams: parseInt((formData as any).numberOfTeams) || 2,
         playersPerTeam: parseInt((formData as any).playersPerTeam) || 2,
-        trackByPlayer: (formData as any).trackByPlayer === false,
+        trackByPlayer: (formData as any).trackByPlayer === true,
         useRounds: (formData as any).useRounds === true,
         roundsName: (formData as any).roundsName || 'Round',
-        maxRounds: parseInt((formData as any).maxRounds) || undefined,
         trackPerRound: (formData as any).trackPerRound === true,
         winCondition: (formData as any).winCondition || 'First to point limit',
-        winPoints: (formData as any).winPoints || undefined,
-        winRounds: (formData as any).winRounds || undefined,
         canTie: (formData as any).canTie === true,
         playStyle: (formData as any).playStyle || 'simultaneous',
         customStats: (formData as any).customStats || [],
@@ -136,11 +136,32 @@ export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded
         adjustable: (formData as any).adjustable === true
       };
 
-      // Only add maxRounds if it has a valid value
+      // Only add optional fields if they have valid values
+      if ((formData as any).recordLayout && (formData as any).recordLayout !== '') {
+        sportData.recordLayout = (formData as any).recordLayout;
+      }
+
       const maxRoundsValue = parseInt((formData as any).maxRounds);
       if (!isNaN(maxRoundsValue) && maxRoundsValue > 0) {
-        (sportData as any).maxRounds = maxRoundsValue;
+        sportData.maxRounds = maxRoundsValue;
       }
+
+      const winPointsValue = parseInt((formData as any).winPoints);
+      if (!isNaN(winPointsValue) && winPointsValue > 0) {
+        sportData.winPoints = winPointsValue;
+      }
+
+      const winRoundsValue = parseInt((formData as any).winRounds);
+      if (!isNaN(winRoundsValue) && winRoundsValue > 0) {
+        sportData.winRounds = winRoundsValue;
+      }
+
+      const winByValue = parseInt((formData as any).winBy);
+      if (!isNaN(winByValue) && winByValue > 0) {
+        sportData.winBy = winByValue;
+      }
+
+      console.log('Sport data to save:', sportData);
 
       const sportToSave = sportData;
 
@@ -173,33 +194,54 @@ export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded
           <>
             <FormControl fullWidth margin="normal">
               <FormLabel>Select Game to add</FormLabel>
-                <Select
-                    value={sport?.name || ''}
-                    onChange={handleSportSelection}
-                >
-                    {sports.map((sport: Sport) => (
-                        <MenuItem key={sport.name} value={sport.name}>
-                            {sport.name}
-                        </MenuItem>
-                    ))}
-                    <MenuItem key="add-custom" value="custom">
-                        Add Custom Game
-                    </MenuItem>
-                </Select>
-                <TextField
-                    label="Game Name"
-                    value={(formData as any).name || ''}
-                    onChange={e => handleChange('name', e.target.value)}
-                    margin="normal"
-                />
-                <TextField
-                    label="Game Description"
-                    multiline
-                    rows={3}    
-                    onChange={e => handleChange('description', e.target.value)}
-                    margin="normal"
-                />
+              <Select
+                sx={{ mb: 1 }}
+                value={sport?.name || ''}
+                onChange={handleSportSelection}
+              >
+                {sports.map((sport: Sport) => (
+                  <MenuItem key={sport.name} value={sport.name}>
+                    {sport.name}
+                  </MenuItem>
+                ))}
+                <MenuItem key="add-custom" value="custom">
+                  Add Custom Game
+                </MenuItem>
+              </Select>
             </FormControl>
+
+            <FormControl fullWidth margin="normal">
+              <FormLabel>Select Game Category</FormLabel>
+              <Select
+                value={(formData as any).sportCategory || ''}
+                onChange={e => handleChange('sportCategory', e.target.value)}
+                fullWidth
+              >
+                {(Array.isArray(sportCategory) ? sportCategory : []).map((category: string) => (
+                  <MenuItem key={category} value={category}>
+                    {category}
+                  </MenuItem>
+                ))} 
+              </Select>
+            </FormControl>
+
+            <TextField
+              label="Game Name"
+              value={(formData as any).name || ''}
+              onChange={e => handleChange('name', e.target.value)}
+              fullWidth
+              margin="normal"
+            />
+            
+            <TextField
+              label="Game Description"
+              multiline
+              rows={3}
+              value={(formData as any).description || ''}    
+              onChange={e => handleChange('description', e.target.value)}
+              fullWidth
+              margin="normal"
+            />
           </>
         );
       case 1:
@@ -263,11 +305,11 @@ export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded
                   Are there rounds?
                 </Typography>
                 <Switch
-                  checked={(formData as any).hasRounds || false}
-                  onChange={e => handleChange('hasRounds', e.target.checked)}
+                  checked={(formData as any).useRounds}
+                  onChange={e => handleChange('useRounds', e.target.checked)}
                 />
               </Box>
-              { (formData as any).hasRounds && (
+              { (formData as any).useRounds && (
                 <>
                   <Grid container gap={1} mt={.5} px={3}>
                       <Grid size={6}>
@@ -276,8 +318,8 @@ export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded
                               size="small"
                               label="Name (e.g. Set, Match)"
                               type="text"
-                              value={(formData as any).roundName || ''}
-                              onChange={e => handleChange('roundName', e.target.value)}
+                              value={(formData as any).roundsName || ''}
+                              onChange={e => handleChange('roundsName', e.target.value)}
                           />
                       </Grid>
                       <Grid size={5.5}>
@@ -306,14 +348,16 @@ export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded
                             value={(formData as any).winCondition || ''}
                             onChange={e => handleChange('winCondition', e.target.value)}
                         >
-                            { !(formData as any).hasRounds && (
+                            { !(formData as any).useRounds && (
                               <MenuItem key="first-to-point-limit" value="First to point limit">
                                 First to point limit
                               </MenuItem>
                             )}
+                            { (formData as any).useRounds && (
                             <MenuItem key="first-to-round-limit" value="First to round limit">
                                 First to round limit
                             </MenuItem>
+                            )}
                             <MenuItem key="most-points" value="Most points">
                                 Most points
                             </MenuItem>
@@ -325,6 +369,7 @@ export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded
                                 fullWidth
                                 label="Point limit"
                                 type="number"
+                                value={(formData as any).winPoints || ''}
                                 onChange={e => handleChange('winPoints', e.target.value)}
                             />
                         </Grid>
@@ -335,6 +380,7 @@ export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded
                                 fullWidth
                                 label="Round limit"
                                 type="number"
+                                value={(formData as any).winRounds || ''}
                                 onChange={e => handleChange('winRounds', e.target.value)}
                             />
                         </Grid>

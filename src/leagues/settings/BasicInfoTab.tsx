@@ -6,7 +6,8 @@ import { doc, getDoc, collection, query, where, getDocs, updateDoc, arrayUnion, 
 import { db } from '../../Backend/firebase';
 import { useParams } from 'react-router-dom';
 import { Box, Paper, Typography, Divider, Grid, TextField, Alert, Button, Table, TableContainer, 
-  TableRow, TableCell, TableHead, TableBody, Menu, MenuItem, IconButton, Chip} from '@mui/material';
+  TableRow, TableCell, TableHead, TableBody, Menu, MenuItem, IconButton, Chip,
+  Stack} from '@mui/material';
 import { getUserConversations, addUserToLeagueConversations,  updateJoinRequestStatus, sendMessage } from '../../messaging';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 
@@ -265,14 +266,13 @@ const BasicInfoTab: React.FC = () => {
         <Typography variant="body2">Adjust basic info about the league</Typography>
       </Box>
 
-      <Divider style={{ margin: '16px 0' }} />
+      <Divider style={{ marginTop: 10, marginBottom: 5 }} />
 
       <Grid container sx={{spacing: 2, px: 4}} >
-        <Grid size={3}>
+        <Grid size={3} sx={{ display: 'flex', alignItems: 'center', marginLeft: 2, marginTop: 1 }}>
           <Typography variant="h4">Identification</Typography>
         </Grid>
-        <Grid size={9}>
-          <Box justifyContent={'space-between'} display="flex" flexDirection="column" height="100%">
+        <Grid size={8}>
             <TextField
               label="League Name"
               variant="outlined"
@@ -282,31 +282,36 @@ const BasicInfoTab: React.FC = () => {
               margin="normal"
               size="small"
             />
+        </Grid>
+      </Grid>
+      <Stack spacing={3} sx={{ px: 4 }}>    
             <TextField
+              label="League Description"
+              variant="outlined"
+              multiline
+              rows={3}
+              value={editLeague?.description || ''}
+              onChange={(e) => handleChange('description', e.target.value)}
+              fullWidth
+              margin="normal"
+              sx={{ height: 50, fontSize: '.5rem', pb: 12, mt: 1}}
+              size="small"
+              maxRows={3}
+            />
+            <TextField
+
               label="League Identifier"
               variant="outlined"
               helperText="Unique ID is uneditable"
-              value={editLeague?.id}
+              value={editLeague?.id || 'Loading...'}
               fullWidth
               margin="normal"
               disabled
               size="small"
             />
-            <TextField
-              label="League Description"
-              variant="outlined"
-              id="outlined-multiline-static"
-              value={editLeague?.description || ''}
-              onChange={(e) => handleChange('description', e.target.value)}
-              fullWidth
-              margin="normal"
-              sx={{ height: 50, fontSize: '.5rem' }}
-              size="small"
-              maxRows={3}
-            />
-          </Box>
-        </Grid>
-      </Grid>
+      </Stack>
+        
+      
 
       <Divider style={{ margin: '16px 0' }} />
 
