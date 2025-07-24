@@ -107,41 +107,33 @@ const GameplayTab: React.FC = () => {
               ) : (
                 <Box sx={{ mb: 2 }}>
                   {leagueSports.map((sport) => (
-                    <Accordion
-                      key={sport.id}
-                      sx={{ mb: 1 }}
-                    >
+                    <Accordion key={sport.id} sx={{ mb: 1 }}>
                       <AccordionSummary
                         expandIcon={<ExpandMoreIcon />}
                         aria-controls={`sport-${sport.id}-content`}
                         id={`sport-${sport.id}-header`}
                       >
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', pr: 2 }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                            <Typography variant="h6">{sport.name}</Typography>
-                            <Chip
-                              label={sport.type}
-                              color={sport.type === 'Custom' ? 'secondary' : 'primary'}
-                              size="small"
-                            />
-                          </Box>
-                          <Button
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                          <Chip
+                            color={sport.type === 'Custom' ? 'secondary' : 'primary'}
+                            label={sport.type}
                             size="small"
-                            color="error"
-                            startIcon={<DeleteIcon />}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleRemoveSport(sport.id);
-                            }}
-                            sx={{ ml: 'auto' }}
-                          >
-                            Delete
-                          </Button>
+                          />
+                          <Typography variant="h6">{sport.name}</Typography>
                         </Box>
                       </AccordionSummary>
                       <AccordionDetails>
                         <Box sx={{ p: 2 }}>
                           <h1>{sport.displayName}</h1>
+                          <Button
+                            size="small"
+                            color="error"
+                            startIcon={<DeleteIcon />}
+                            onClick={() => handleRemoveSport(sport.id)}
+                            sx={{ mt: 2 }}
+                          >
+                            Delete
+                          </Button>
                         </Box>
                       </AccordionDetails>
                     </Accordion>

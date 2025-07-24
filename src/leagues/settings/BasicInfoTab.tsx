@@ -296,7 +296,6 @@ const BasicInfoTab: React.FC = () => {
               margin="normal"
               sx={{ height: 50, fontSize: '.5rem', pb: 12, mt: 1}}
               size="small"
-              maxRows={3}
             />
             <TextField
 
@@ -395,19 +394,18 @@ const BasicInfoTab: React.FC = () => {
           <MenuItem onClick={() => selectedMember && handleViewProfile(selectedMember)}>
             View Profile
           </MenuItem>
-          {selectedMember !== league?.adminId && (
-            <>
-              <MenuItem onClick={() => selectedMember && handlePromoteToAdmin(selectedMember)}>
+            {selectedMember !== league?.adminId && [
+              <MenuItem key="promote" onClick={() => selectedMember && handlePromoteToAdmin(selectedMember)}>
                 Promote to Admin
-              </MenuItem>
-              <MenuItem 
+              </MenuItem>,
+              <MenuItem
+                key="remove"
                 onClick={() => selectedMember && handleKickMember(selectedMember)}
                 sx={{ color: 'error.main' }}
               >
                 Remove from League
               </MenuItem>
-            </>
-          )}
+            ]}
         </Menu>
       </Box>
 

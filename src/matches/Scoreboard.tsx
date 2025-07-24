@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, getDocs } from 'firebase/firestore';
 import { db } from '../Backend/firebase';
 import { Typography, Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Select, MenuItem, FormControl, InputLabel, CircularProgress, Button } from '@mui/material';
 import { useLocation, useParams } from 'react-router-dom';
 import { InternalBox } from '../Backend/InternalBox';
 import { type Player } from '../types/playerDb';
+import { type Sport } from '../types/sports.ts';
 
 interface PlayerStats {
   uid: string;
@@ -20,16 +21,17 @@ interface PlayerStats {
 
 
 
-const sports = ['Ping Pong Singles', 'Ping Pong Doubles', 'Foosball', 'Pool'];
+
 
 const Scoreboard: React.FC = () => {
   const { leagueId } = useParams<{ leagueId: string }>();
   const [league, setLeague] = useState<any>(null);
   const [players, setPlayers] = useState<any[]>([]);
-  const [sport, setSport] = useState('Ping Pong Singles');
   const [loading, setLoading] = useState(true);
   const location = useLocation();
   const [members, setMembers] = useState<Player[]>([]);
+  const [sports, setSports] = useState<Sport[]>([]);
+  const [selectedSport, setSelectedSport] = useState<Sport | null>(null);
 
   useEffect(() => {
     if (league && league.members) {
@@ -75,6 +77,13 @@ const Scoreboard: React.FC = () => {
       // Fetch the league document
       const leagueRef = doc(db, 'leagues', leagueId);
       const leagueSnap = await getDoc(leagueRef);
+      const sportsRef = collection(db, 'leagues', leagueId, 'sports');
+      const sportsSnap = await getDocs(sportsRef);
+      const sportsData: Sport[] = sportsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Sport));
+      setSports(sportsData);
+      if (sportsData.length > 0) {
+        setSelectedSport(sportsData[0]);
+      }
       if (!leagueSnap.exists()) {
         setPlayers([]);
         setLoading(false);
@@ -96,8 +105,7 @@ const Scoreboard: React.FC = () => {
       const users = (await Promise.all(memberPromises)).filter(Boolean);
       setPlayers(users);
 
-      // Optionally set the default sport
-      setSport(sports[0]);
+
     } catch (error) {
       console.error('Error fetching data:', error);
       setPlayers([]);
@@ -108,14 +116,14 @@ const Scoreboard: React.FC = () => {
 
   useEffect(() => {
     fetchData();
-    console.log(members)
-  }, [sport, location.pathname]);
+  }, [location.pathname, leagueId]);
 
   // Calculate stats for each player from user stats
   const playerStats: PlayerStats[] = players.map(player => {
     // Aggregate stats for the selected sport
-    const statKey = sport;
-    const stats = player.stats && player.stats[statKey] ? player.stats[statKey] : { gamesPlayed: 0, wins: 0, losses: 0, pointDiff: 0 };
+    console.log(members)
+    const sportKey = selectedSport?.sportCategory || 'general';
+    const stats = player.stats && player.stats[sportKey] ? player.stats[sportKey] : { gamesPlayed: 0, wins: 0, losses: 0, pointDiff: 0 };
     const gamesPlayed = stats.gamesPlayed || 0;
     const wins = stats.wins || 0;
     const losses = stats.losses || 0;
@@ -149,8 +157,8 @@ const Scoreboard: React.FC = () => {
         <Box display="flex" alignItems="center" mb={2} gap={2}>
           <FormControl sx={{ minWidth: 200 }}>
             <InputLabel>Sport</InputLabel>
-            <Select value={sport} label="Sport" onChange={e => setSport(e.target.value)}>
-              {sports.map(s => <MenuItem key={s} value={s}>{s}</MenuItem>)}
+            <Select value={selectedSport?.name || ''} label="Sport" onChange={e => setSelectedSport(sports.find(s => s.name === e.target.value) || null)}>
+              {sports.map(s => <MenuItem key={s.id} value={s.name}>{s.name}</MenuItem>)}
             </Select>
           </FormControl>
           <Button variant="outlined" onClick={fetchData} disabled={loading} sx={{ height: 40 }}>
