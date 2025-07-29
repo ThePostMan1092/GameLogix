@@ -1,0 +1,21 @@
+@startsalt
+skinparam backgroundcolor #FEFFFF
+{
+{+
+    {* Manage Rule Set}
+    {[New]| [ Delete] | [Edit]}
+
+    {T-
+☐|<b>Rule Set | <b>Description|<b>Allowed RuleSets  
+☐| Ruleset 1 | blah blah | <color:blue><size:8>Racquetball; Pickleball; +5
+☐| Ruleset 2 | blah blah | <color:blue><size:8>Baseball
+☐|  Ruleset 3 | blah blah | .
+☐|  Ruleset 4 | blah blah | <color:blue><size:8>Speed Cubing; Hot Dog Eating +18
+    }
+    
+}
+Notes:
+- this drives available event types and filters 
+the available rulesets during event creation
+}
+@endsalt
