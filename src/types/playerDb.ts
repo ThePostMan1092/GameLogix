@@ -38,8 +38,10 @@ export interface Player {
   email?: string;
   leagues?: string[];
   avatarUrl?: string;
-  sportStats: {
-    [key in GameType]?: PingPongStats | FoosballStats | PoolStats;
+  sports: {
+    [key: string]: {
+      stats: any; // Replace 'any' with the specific stats type from sports.ts if available
+    };
   }
 }
 

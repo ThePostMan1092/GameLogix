@@ -27,14 +27,14 @@ const LeagueSettings: React.FC = () => {
       <Box display="flex" gap={2} mt={4} justifyContent="center">
         <Button 
           variant="outlined" 
-          onClick={() => navigate('/dashboard')}
+          onClick={() => navigate('/Home')}
           size="large"
         >
           Back to Dashboard
         </Button>
         <Button 
           variant="contained" 
-          onClick={() => navigate(`/League/${leagueId}`)}
+          onClick={() => leagueId && navigate(`/League/${leagueId}/dashboard/Scoreboard`)}
           size="large"
         >
           View League

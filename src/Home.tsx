@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Box, Button, Typography, Card, CardContent, Chip, CircularProgress } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
+import { Box, Typography, Card, CardContent, Chip, CircularProgress } from '@mui/material';
 import { InternalBox } from './Backend/InternalBox';
 import { useAuth } from './Backend/AuthProvider';
 import { db } from './Backend/firebase';
@@ -87,62 +87,6 @@ const Home: React.FC = () => {
         </Box>
       </Box>
 
-      {/* Quick Actions */}
-      <Box sx={{ mb: 6 }}>
-        <Typography variant="h5" gutterBottom>
-          Quick Actions
-        </Typography>
-        <Box display="flex" flexWrap="wrap" gap={2}>
-          <Box sx={{ minWidth: 200, flex: '1 1 200px' }}>
-            <Button 
-              variant="contained" 
-              fullWidth 
-              size="large"
-              component={Link}
-              to="/record"
-              sx={{ py: 2 }}
-            >
-              Record Game
-            </Button>
-          </Box>
-          <Box sx={{ minWidth: 200, flex: '1 1 200px' }}>
-            <Button 
-              variant="outlined" 
-              fullWidth 
-              size="large"
-              component={Link}
-              to="/schedule"
-              sx={{ py: 2 }}
-            >
-              Schedule Game
-            </Button>
-          </Box>
-          <Box sx={{ minWidth: 200, flex: '1 1 200px' }}>
-            <Button 
-              variant="outlined" 
-              fullWidth 
-              size="large"
-              component={Link}
-              to="/scoreboard"
-              sx={{ py: 2 }}
-            >
-              View Scoreboard
-            </Button>
-          </Box>
-          <Box sx={{ minWidth: 200, flex: '1 1 200px' }}>
-            <Button 
-              variant="outlined" 
-              fullWidth 
-              size="large"
-              component={Link}
-              to="/leagues/join"
-              sx={{ py: 2 }}
-            >
-              Join New League
-            </Button>
-          </Box>
-        </Box>
-      </Box>
 
       {/* App Features Overview */}
       <Box>
