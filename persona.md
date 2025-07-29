@@ -14,11 +14,12 @@
 - EventType/RuleSet Author
   - Creates Sports/Events and associated rule sets
 - Team
-  - 2+ Participants
+  - 2+ Users
   - Participates in events
-- Participant
+- User
   - Manages Profile
-  - Participates in events or teams
+  - Participates in events 
+  - Participates in teams
   - May create events
   - May create teams
   - Records event results
