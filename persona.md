@@ -11,7 +11,7 @@
       - Event Weighting
   - Manages League participation
   - Sets initial schedules
-- EventType/RuleSet Creator
+- EventType/RuleSet Author
   - Creates Sports/Events and associated rule sets
 - Team
   - 2+ Participants
