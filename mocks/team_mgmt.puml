@@ -1,0 +1,26 @@
+@startsalt
+skinparam backgroundcolor #FEFFFF
+{
+{+
+    {* Manage Teams}
+    {[New]| [ Delete]}
+
+    {T-
+☐|<b>Team | <b>Description|<b>Participants  
+☐| Team 1 | blah blah | <color:blue><size:8>Participant 1; Participant 2; Participant 3; +6</size></color>
+☐| Team 2 | blah blah | <color:blue><size:8>Participant 50; Participant 51; Participant 52; +8</size></color>
+☐| Team 3 | blah blah | <color:blue><size:8>Participant 1; Participant 2; Participant 3; +12</size></color>
+☐| Team 4 | blah blah | <color:blue><size:8>Participant 1; Participant 2; Participant 3; +87</size></color>
+    }
+    
+}
+Notes:
+- Consider the metadata associated with teams (logos, mottos, etc)
+- Consider ad hoc teams (all star teams, etc)
+- consider the implications of arbitrarily sized teams - 
+(may want to filter by size in downstream modals)
+- this is an innnovation opportuntity - match event to team size
+- consider deletion rules - what blocks team deletion/modification
+- Consider RBAC roles in team management
+}
+@endsalt

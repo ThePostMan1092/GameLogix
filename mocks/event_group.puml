@@ -49,6 +49,7 @@ skinparam backgroundcolor #FEFFFF
 Notes:  
 - Elements in <color:blue>blue </color> link to management modals
 - A tournament can contain 1+ events
+- Consider enforcing the same team size for all events in a group
 - A season can contain 1+ tournaments and/or 1+ events
 - Consider implications of Participants/teams on your data model
 - Possible to autocalculate the end by providing a duration input
