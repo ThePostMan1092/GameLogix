@@ -1,0 +1,20 @@
+@startsalt
+skinparam backgroundcolor #FEFFFF
+{
+{+
+    {* Manage Users}
+    {[New]| [ Delete]}
+
+    {T-
+☐|<b>User | <b>Description|<b>Teams  
+☐| User 1 | blah blah | <color:blue><size:8>Team 1; Team 2; Team 3; +6</size></color>
+☐| User 2 | blah blah | <color:blue><size:8>Team 50; Team 51; Team 52; +8</size></color>
+☐| User 3 | blah blah | <color:blue><size:8>Team 1; Team 2; Team 3; +12</size></color>
+☐| User 4 | blah blah | <color:blue><size:8>Team 1; Team 2; Team 3; +87</size></color>
+    }
+    
+}
+Notes:
+
+}
+@endsalt

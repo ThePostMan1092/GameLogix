@@ -1,0 +1,31 @@
+# Persona
+
+- Platform admin
+  - Manages platform
+- League Admin
+  - Manages League settings
+    - Allowed EventTypes
+    - Participant-created Events
+    - Participant-created Teams
+    - Scoring
+      - Event Weighting
+  - Manages League participation
+  - Sets initial schedules
+- EventType/RuleSet Author
+  - Creates Sports/Events and associated rule sets
+- Team
+  - 2+ Users
+  - Participates in events
+- User
+  - Manages Profile
+  - Participates in events 
+  - Participates in teams
+  - May create events
+  - May create teams
+  - Records event results
+  - Attests to event results
+  - Views results
+  - Views rolled-up analytics
+  - Issues shout-outs
+  - Responds to shout-outs
+  - Accesses REST API for bespoke analytics

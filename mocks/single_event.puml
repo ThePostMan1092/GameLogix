@@ -1,0 +1,44 @@
+@startsalt
+skinparam backgroundcolor #FEFFFF
+
+{
+{*  Create Event}
+{+
+
+{
+    { 
+          {{( ) Individual
+
+         ( ) <color:blue>Team} 
+
+
+            |{{ <b>Start:  | <&calendar*2> | 28 Jul 2028 13:00 EDT}
+            { <b>End :   |    <&calendar*2> | 28 Jul 2028 14:00 EDT}}}
+            
+==
+         {Home:  | ^  Participant 1 ^ | Away: | ^ Participant 2 ^}
+            {.}
+
+        {
+
+          {<color: #blue> Event Type:  | ^  Baseball ^ Pool ^ Pickleball ^ Chess ^ Speed Cubing ^ | <color: #blue> Rule Set: | ^ Default ^ Custom 1 ^ Custom 2 ^}
+    
+
+        {.}
+          
+{.}
+        {
+        }
+        } 
+        
+
+    }
+    --
+{                                                 |[Cancel] | [Submit]|}
+}
+}
+Notes:
+- Consider whether you need a start time or justa  "finish by" time
+- Consider a type-to-complete UX pattern for very league leagues
+}
+@endsalt

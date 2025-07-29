@@ -2,6 +2,10 @@
 
 A modern React + TypeScript web application for tracking corporate office sports games (ping pong, foosball, pool, and more). Built with Vite, MUI (Material-UI), and React Router.
 
+## View ERD
+
+https://dbdiagram.io/d/GameLogix-ERD-68892f41cca18e685c5362b3
+
 ## Features
 - Player profiles
 - Record games and scores
