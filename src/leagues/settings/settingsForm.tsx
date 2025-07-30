@@ -10,7 +10,7 @@ import RadioGroup from '@mui/material/RadioGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import FormLabel from '@mui/material/FormLabel';
 import FormControl from '@mui/material/FormControl';
-import { type Sport, sportCategory } from '../../types/sports.ts'; 
+import { type Sport, sportParent } from '../../types/sports.ts'; 
 import sports from '../../types/sports.ts'; // Import the default export
 import { collection, addDoc } from 'firebase/firestore';
 import { db } from '../../Backend/firebase';
@@ -49,7 +49,7 @@ export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded
     setSport(savedSport);
     setFormData({
       name: savedSport.name || '',
-      sportCategory: savedSport.sportCategory || '',
+      sportParent: savedSport.sportParent || '',
       description: savedSport.description || '',
       gameType: savedSport.gameType || '',
       teamFormat: savedSport.teamFormat || '',
@@ -108,10 +108,11 @@ export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded
         // Pre-populate form data with the sport's preset configuration
         setFormData({
             name: predefinedSport.name || '',
-            sportCategory: predefinedSport.sportCategory || '',
+            sportParent: predefinedSport.sportParent || '',
             description: predefinedSport.description || '',
             gameType: predefinedSport.gameType || '',
             teamFormat: predefinedSport.teamFormat || '',
+            playerLayout: predefinedSport.playerLayout || '',
             recordLayout: predefinedSport.recordLayout || '',
             numberOfTeams: predefinedSport.numberOfTeams ?? 2,
             playersPerTeam: predefinedSport.playersPerTeam ?? 2,
@@ -148,7 +149,7 @@ export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded
       // Create the sport object to save - filter out undefined values
       const sportData: any = {
         name:  (formData as any).name || sport?.name || 'Custom Sport',
-        sportCategory: (formData as any).sportCategory || 'Custom',
+        sportParent: (formData as any).sportParent || 'Custom',
         description: (formData as any).description || '',
         gameType: (formData as any).gameType || 'competition',
         teamFormat: (formData as any).teamFormat || 'teams',
@@ -244,15 +245,15 @@ export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded
             </FormControl>
 
             <FormControl fullWidth margin="normal">
-              <FormLabel>Select Game Category</FormLabel>
+              <FormLabel>Select Game Parent</FormLabel>
               <Select
-                value={(formData as any).sportCategory || ''}
-                onChange={e => handleChange('sportCategory', e.target.value)}
+                value={(formData as any).sportParent || ''}
+                onChange={e => handleChange('sportParent', e.target.value)}
                 fullWidth
               >
-                {(Array.isArray(sportCategory) ? sportCategory : []).map((category: string) => (
-                  <MenuItem key={category} value={category}>
-                    {category}
+                {(Array.isArray(sportParent) ? sportParent : []).map((Parent: string) => (
+                  <MenuItem key={Parent} value={Parent}>
+                    {Parent}
                   </MenuItem>
                 ))} 
               </Select>

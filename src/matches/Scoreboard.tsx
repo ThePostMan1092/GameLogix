@@ -122,7 +122,7 @@ const Scoreboard: React.FC = () => {
   const playerStats: PlayerStats[] = players.map(player => {
     // Aggregate stats for the selected sport
     console.log(members)
-    const sportKey = selectedSport?.sportCategory || 'general';
+    const sportKey = selectedSport?.sportParent || 'general';
     const stats = player.stats && player.stats[sportKey] ? player.stats[sportKey] : { gamesPlayed: 0, wins: 0, losses: 0, pointDiff: 0 };
     const gamesPlayed = stats.gamesPlayed || 0;
     const wins = stats.wins || 0;

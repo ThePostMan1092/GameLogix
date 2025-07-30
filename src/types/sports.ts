@@ -1,5 +1,13 @@
-export const sportCategory = ['Ping Pong', 'Basketball', 'Bowling', 'Spikeball'] as const;
+export const sportParent = ['Ping Pong', 'Basketball', 'Bowling', 'Spikeball'] as const;
 
+export const scoringTypes = [
+  {type: 'solo competition round based', sports: ['Bowling', 'Golf', 'poker' ]},
+  {type: 'small team round based', sports: ['Ping Pong', 'Pickleball', 'tennis', 'badminton', 'volleyball']},
+  {type: 'team splitup game', sports: ['Basketball', 'Soccer', 'Rugby', 'Football', 'Hockey']},
+  {type: 'small size turn based', sports: ['spades', 'chess', 'horseshoes', ]},
+  {type: 'team splitup round based', sports: ['darts', 'cornhole', 'pool', 'bowling']},
+  {type: 'solo', sports: ['running', 'swimming', 'cycling', 'triathlon', 'speedcubing', 'speedruns']},
+]
 
 export interface CustomStat {
   name: string;
@@ -19,11 +27,12 @@ export interface SpecialRule {
 
 export interface Sport {
   id: string;
-  sportCategory: typeof sportCategory[number]; // restrict to allowed categories
+  sportParent: typeof sportParent[number]; // restrict to allowed categories
   name: string;
   description?: string;
   gameType: 'solo' | 'competition';
   teamFormat: 'individuals' | 'teams';
+  playerLayout?: 'smallTeam' | 'largeTeam' | 'solo' | 'manyIndividuals';
   recordLayout?: 'table' | 'cards';
   numberOfTeams?: number;
   playersPerTeam?: number;
@@ -50,6 +59,7 @@ const basketballFullTeam: Sport = {
   id: 'uuid-or-sport-name',
   name: 'Basketball',
   gameType: 'competition',
+  playerLayout: 'largeTeam',
   recordLayout: 'cards',
   teamFormat: 'teams',
   numberOfTeams: 2,
@@ -94,7 +104,7 @@ const basketballFullTeam: Sport = {
   createdAt: new Date(),
   createdBy: 'user123',
   adjustable: true,
-  sportCategory: 'Basketball'
+  sportParent: 'Basketball'
 }
 
 const pingPongDoubles: Sport = {
@@ -102,6 +112,7 @@ const pingPongDoubles: Sport = {
   name: 'Ping Pong Doubles',
   gameType: 'competition',
   teamFormat: 'teams',
+  playerLayout: 'smallTeam',
   recordLayout: 'cards',
   numberOfTeams: 2,
   playersPerTeam: 2,
@@ -148,7 +159,7 @@ const pingPongDoubles: Sport = {
   createdAt: new Date(),
   createdBy: 'user123',
   adjustable: true,
-  sportCategory: 'Ping Pong'
+  sportParent: 'Ping Pong'
 }
 
 const bowlingSolo: Sport = {
@@ -156,6 +167,7 @@ const bowlingSolo: Sport = {
   name: 'Bowling Singles',
   gameType: 'solo',
   teamFormat: 'individuals',
+  playerLayout: 'manyIndividuals',
   recordLayout: 'table',
   useRounds: true,
   roundsName: 'frames',
@@ -208,9 +220,54 @@ const bowlingSolo: Sport = {
   createdAt: new Date(),
   createdBy: 'user123',
   adjustable: true,
-  sportCategory: 'Bowling'
+  sportParent: 'Bowling'
 }
 
-const sports: Sport[] = [basketballFullTeam, pingPongDoubles, bowlingSolo];
+const pickleballDoubles: Sport = {
+  id: 'uuid-or-sport-name',
+  name: 'Pickleball Doubles',
+  gameType: 'competition',
+  teamFormat: 'teams',
+  playerLayout: 'smallTeam',
+  recordLayout: 'cards',
+  useRounds: true,
+  roundsName: 'Sets',
+  maxRounds: 3,
+  winCondition: 'First to round limit',
+  canTie: false,
+  winBy: 2,
+  playStyle: 'turn-based',
+  trackByPlayer: false,
+  activeTrack: false,
+  customStats: [
+    {
+      name: 'Score',
+      dataType: 'number',
+      unit: 'points',
+      description: '',
+      minValue: 0,
+      maxValue: 21,
+      defaultValue: 0,
+      decimalPlaces: 0
+    },
+    {
+      name: 'Aces',
+      dataType: 'counter',
+      unit: 'aces',
+      description: 'Number of aces served',
+      defaultValue: 0
+    }
+  ],
+  customSpecialRules: [
+  ],
+  createdAt: new Date(),
+  createdBy: 'user123',
+  adjustable: true,
+  sportParent: 'Bowling'
+}
+
+
+
+const sports: Sport[] = [basketballFullTeam, pingPongDoubles, bowlingSolo, pickleballDoubles];
 
 export default sports;
