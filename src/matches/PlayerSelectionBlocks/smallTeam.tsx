@@ -11,6 +11,7 @@ interface Player {
   id: string;
   displayName: string;
   email?: string;
+
 }
 
 // Available sports for company leagues
@@ -24,8 +25,10 @@ interface teamPostitioning {
 interface SmallTeamProps {
   leagueMembers: Player[];
   selectedSport: Sport;
+  onSelectionChange?: (players: teamPostitioning[]) => void;
 }
-const SmallTeam: React.FC<SmallTeamProps> = ({leagueMembers, selectedSport}) => {
+
+const SmallTeam: React.FC<SmallTeamProps> = ({leagueMembers, selectedSport, onSelectionChange}) => {
   const {user} = useAuth();
   const [opponents, setOpponents] = useState<Player[]>(leagueMembers.filter(member => member.id !== user?.uid));
   const [opponentId, setOpponentId] = useState<string>('');
@@ -33,31 +36,24 @@ const SmallTeam: React.FC<SmallTeamProps> = ({leagueMembers, selectedSport}) => 
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([user?.uid ?? '']);
   const selectedPlayerIds = players.map(p => p.playerId);
 
-  // Prevent duplicate selection
-  const availablePlayers = leagueMembers.filter(
-    member => !selectedPlayers.includes(member.id) || selectedPlayers[0] === member.id
-  );
-
   const handleSelectPlayer = (playerId: string, teamId: number, position: number) => {
     setPlayers(prevPlayers => {
-      // Remove any previous selection for this slot
       const filtered = prevPlayers.filter(p => !(p.teamid === teamId && p.teamPosition === position));
-      // Add new selection
       const newPlayer: teamPostitioning = {
         teamid: teamId,
         teamPosition: position,
         playerId: playerId,
         displayName: opponents.find(opponent => opponent.id === playerId)?.displayName || ''
       };
-      return [...filtered, newPlayer];
+      const updated = [...filtered, newPlayer];
+      if (onSelectionChange) onSelectionChange(updated);
+      return updated;
     });
   };
 
   useEffect(() => {
     // Always include current user as first slot
     setSelectedPlayers(prev => [user?.uid ?? '', ...prev.slice(1, selectedSport.playersPerTeam)]);
-    console.log('Selected Players:', selectedPlayers);
-    console.log("opponents:", opponents);
   }, [user?.uid, selectedSport.playersPerTeam]);
 
   return (
