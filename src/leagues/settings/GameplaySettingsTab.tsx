@@ -31,6 +31,7 @@ const GameplayTab: React.FC = () => {
   const [showAddSport, setShowAddSport] = useState(false);
   const [selectedSportType, setSelectedSportType] = useState<'Ping Pong' | 'Spikeball' | 'Custom'>('Ping Pong');
   const [newSportDisplayName, setNewSportDisplayName] = useState('');
+  const [editingSport, setEditingSport] = useState<any>(null);
 
   const availableSportTypes = ['Ping Pong', 'Spikeball', 'Custom'] as const;
 
@@ -41,6 +42,12 @@ const GameplayTab: React.FC = () => {
     fetchLeagueData();
     fetchLeagueSports();
   }, [leagueId]);
+
+const openSavedSport = (sport: any) => {
+  setEditingSport(sport);
+  setDialogOpen(true);
+};
+
 
   const handleRemoveSport = async (sportId: string) => {
     try {
@@ -122,20 +129,32 @@ const GameplayTab: React.FC = () => {
                           <Typography variant="h6">{sport.name}</Typography>
                         </Box>
                       </AccordionSummary>
-                      <AccordionDetails>
-                        <Box sx={{ p: 2 }}>
-                          <h1>{sport.displayName}</h1>
+                        <AccordionDetails>
+                        <Box sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
+                          <Typography variant="h6">{sport.displayName}</Typography>
                           <Button
-                            size="small"
-                            color="error"
-                            startIcon={<DeleteIcon />}
-                            onClick={() => handleRemoveSport(sport.id)}
-                            sx={{ mt: 2 }}
+                          size="small"
+                          color="primary"
+                          startIcon={<ExpandMoreIcon />}
+                          onClick={() => {
+                            openSavedSport(sport);
+
+                          }}
+                          sx={{ mt: 2 }}
                           >
-                            Delete
+                          Edit / View Stats
+                          </Button>
+                          <Button
+                          size="small"
+                          color="error"
+                          startIcon={<DeleteIcon />}
+                          onClick={() => handleRemoveSport(sport.id)}
+                          sx={{ mt: 2 }}
+                          >
+                          Delete
                           </Button>
                         </Box>
-                      </AccordionDetails>
+                        </AccordionDetails>
                     </Accordion>
                   ))}
                 </Box>
@@ -145,8 +164,14 @@ const GameplayTab: React.FC = () => {
               </Button>
               <SettingsForm 
                 open={dialogOpen} 
-                onClose={() => setDialogOpen(false)} 
-                onSportAdded={() => fetchLeagueSports()}
+                onClose={() => {setDialogOpen(false);
+                  setEditingSport(null);
+                }} 
+                  onSportAdded={() => {
+                  fetchLeagueSports();
+                  setEditingSport(null);
+                }}
+                editingSport={editingSport}
               />
 
               {showAddSport && (

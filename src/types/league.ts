@@ -7,43 +7,31 @@ export interface LeagueSettings {
   adminId: string;
   members: string[];
   createdAt: any; // Firestore Timestamp
-
-  // 🔐 Access & Visibility
   visibility: 'public' | 'private';
   joinType: 'open' | 'invite' | 'approval';
   joinPasscode?: string;
   joinDeadline?: any; // Firestore Timestamp
   maxMembers?: number;
-
-  // 🕹️ Gameplay Settings
   sports: SportSettings[]; // e.g. ['Ping Pong', 'Foosball']
   maxMatchesPerWeek?: number;
   matchExpirationHours?: number;
   matchVerification: 'manual' | 'automatic' | 'both-confirm';
   matchReporting: 'anyone' | 'admin-only' | 'member-only';
-
-  // 👥 Member & Admin Controls
   allowMultipleAdmins?: boolean;
   allowModerators?: boolean;
   allowMemberScoreReporting?: boolean;
   requireBothConfirm?: boolean;
-
-  // 🎨 Customization
   logoUrl?: string;
   bannerUrl?: string;
   themeColor?: string;
   emoji?: string;
   pinnedMessage?: string;
-
-  // 📊 Competition Format & Ranking
   rankingSystem: 'elo' | 'winPct' | 'points';
   seasonStart?: any; // Firestore Timestamp
   seasonEnd?: any;   // Firestore Timestamp
   resetStatsEachSeason?: boolean;
   scheduleType: 'auto' | 'open';
   tournamentMode?: 'none' | 'single-elim' | 'double-elim';
-
-  // ⚠️ Other
   allowSmurfing?: boolean;
   showFullMatchHistory?: boolean;
   anonymousStats?: boolean;
@@ -52,7 +40,6 @@ export interface LeagueSettings {
   inboxConvoId: string;
   dmConvoId: string;
   reviewConvoId: string;
-
 }
 
 type SportType = 'Ping Pong' | 'Foosball' | 'Pool' | 'Basketball' | 'Air Hockey' | 'Spikeball' | 'Custom';

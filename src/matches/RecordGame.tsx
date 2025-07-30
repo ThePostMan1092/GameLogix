@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Typography, Box, Button, MenuItem, TextField, CircularProgress, Alert, FormControl, InputLabel, Select,
-  Divider, Stack
+  Divider, Stack, Accordion, AccordionSummary, AccordionDetails
  } from '@mui/material';
 import { collection, addDoc, doc, getDoc, getDocs } from 'firebase/firestore';
 import { db } from '../Backend/firebase';
@@ -32,6 +32,8 @@ const RecordGame: React.FC = () => {
   const [sports, setSports] = useState<Sport[]>([]);
   const [selectedSport, setSelectedSport] = useState<Sport | null>(null);
   const [players, setPlayers] = useState<teamPostitioning[]>([]);
+  const selectedPlayerIds = players.map(p => p.playerId);
+  const [statValues, setStatValues] = useState<Record<string, Record<string, string | number>>>({});
 
   useEffect(() => {
     const fetchLeague = async () => {
@@ -178,7 +180,6 @@ const RecordGame: React.FC = () => {
       updatedPlayers.push(newPlayer);
       return updatedPlayers;
     });
-    setOpponents(prevOpponents => prevOpponents.filter(opponent => opponent.id !== playerId));
   };
 
   return (
@@ -211,92 +212,192 @@ const RecordGame: React.FC = () => {
         </FormControl>
         {selectedSport?.gameType === 'competition' && (
           <>
-            <Divider sx={{mt:2}}>Player Selection</Divider>
-            {selectedSport?.numberOfTeams && selectedSport?.numberOfTeams < 4 && (
-              <Stack direction="row" gap={2} divider={<Divider orientation="vertical" flexItem sx={{ my: 1 }} />}>
-                <Box alignItems="center" display="flex" flexDirection="column" sx={{ flex: 1, mx: 2 }}>
-                  <Typography variant="h4" sx={{ mb: 1 }}>
-                    Your Team
-                  </Typography>
+            {selectedSport?.teamFormat === 'individuals' && (
+              <>
+              <Divider sx={{mt:2}}>Player Selection</Divider>
+              <Stack direction="row" spacing={{ xs: 1, sm: 2 }} sx={{flexWrap: 'wrap'}} useFlexGap>
+                <TextField
+                  label="User"
+                  disabled
+                  variant="outlined"
+                  value={user?.displayName || user?.email || user?.uid}
+                  sx={{ mt: 2, width: '30%' }}
+                />
+                {Array.from({ length: selectedSport.numberOfTeams ? selectedSport.numberOfTeams - 1 : 0 }).map((_, i) => (
                   <TextField
-                    label="User"
-                    disabled
-                    fullWidth
-                    variant="outlined"
-                    value={user?.displayName || user?.email || user?.uid}
-                    sx={{ mt: 1.25, mb: 0.9 }}
-                  />
-                  {Array.from({ length: selectedSport.playersPerTeam ? selectedSport.playersPerTeam - 1 : 0 }).map((_, i) => (
-                    <TextField
-                      select
-                      label={`Teammate ${i+1}`}
-                      fullWidth
-                      margin="normal"
-                      value={players.find(p => p.teamid === 1 && p.teamPosition === i + 1)?.displayName || ''}
-                      onChange={(e) => handleSelectPlayer(e.target.value, 1, i + 1)}
-                    >
-                      {opponents.map((opponent) => (
+                    select
+                    label={`Player ${i+2}`}
+                    margin="normal"
+                    value={players.find(p => p.teamid === 1 && p.teamPosition === i + 1)?.playerId || ''}
+                    onChange={(e) => {
+                      handleSelectPlayer(e.target.value, 1, i + 1);
+                    }}
+                    sx={{ width: '30%' }}
+                  >
+                    {opponents
+                      .filter(opponent => 
+                        !selectedPlayerIds.includes(opponent.id) ||
+                        players.find(p => p.teamid === 1 && p.teamPosition === i + 1)?.playerId === opponent.id
+                      )
+                      .map((opponent) => (
                         <MenuItem key={opponent.id} value={opponent.id}>
                           {opponent.displayName || opponent.email || opponent.id}
                         </MenuItem>
-                      ))}
-                    </TextField>
+                    ))}
+                  </TextField>
 
-                  ))}
-                </Box>
-                  {Array.from({ length: selectedSport.numberOfTeams - 1 }).map((_, x) => (
-                    <Box key={x} alignItems="center" display="flex" flexDirection="column" sx={{ flex: 1, mx: 2 }}>
-                      <Typography variant="h4" sx={{ mb: 0 }}>
-                        Team {x + 2}
+                ))}
+              </Stack>
+              </>
+            )}
+
+            {selectedSport?.teamFormat === 'teams' && (
+              <>
+                <Divider sx={{mt:2}}>Player Selection</Divider>
+                {selectedSport?.numberOfTeams && selectedSport?.numberOfTeams < 4 && (
+                  <Stack direction="row" gap={2} divider={<Divider orientation="vertical" flexItem sx={{ my: 1 }} />}>
+                    <Box alignItems="center" display="flex" flexDirection="column" sx={{ flex: 1, mx: 2 }}>
+                      <Typography variant="h4" sx={{ mb: 1 }}>
+                        Your Team
                       </Typography>
-                      {Array.from({ length: selectedSport.playersPerTeam ? selectedSport.playersPerTeam  : 1 }).map((_, i) => (
+                      <TextField
+                        label="User"
+                        disabled
+                        fullWidth
+                        variant="outlined"
+                        value={user?.displayName || user?.email || user?.uid}
+                        sx={{ mt: 1.25, mb: 0.9 }}
+                      />
+                      {Array.from({ length: selectedSport.playersPerTeam ? selectedSport.playersPerTeam - 1 : 0 }).map((_, i) => (
                         <TextField
                           select
-                          label={`Opponent ${i+1}`}
+                          label={`Teammate ${i+1}`}
                           fullWidth
                           margin="normal"
-                          value={players.find(p => p.teamid === x + 2 && p.teamPosition === i + 1)?.displayName || ''}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                            handleSelectPlayer(e.target.value, x + 2, i + 1);
-                            setOpponentId(e.target.value);
+                          value={players.find(p => p.teamid === 1 && p.teamPosition === i + 1)?.playerId || ''}
+                          onChange={(e) => {
+                            handleSelectPlayer(e.target.value, 1, i + 1);
                           }}
                         >
-                          {opponents.map((opponent) => (
-                            <MenuItem key={opponent.id} value={opponent.id}>
-                              {opponent.displayName || opponent.email || opponent.id}
-                            </MenuItem>
+                          {opponents
+                            .filter(opponent => 
+                              !selectedPlayerIds.includes(opponent.id) ||
+                              players.find(p => p.teamid === 1 && p.teamPosition === i + 1)?.playerId === opponent.id
+                            )
+                            .map((opponent) => (
+                              <MenuItem key={opponent.id} value={opponent.id}>
+                                {opponent.displayName || opponent.email || opponent.id}
+                              </MenuItem>
                           ))}
                         </TextField>
+
                       ))}
                     </Box>
-                  ))}
+                      {Array.from({ length: selectedSport.numberOfTeams - 1 }).map((_, x) => (
+                        <Box key={x} alignItems="center" display="flex" flexDirection="column" sx={{ flex: 1, mx: 2 }}>
+                          <Typography variant="h4" sx={{ mb: 0 }}>
+                            Team {x + 2}
+                          </Typography>
+                          {Array.from({ length: selectedSport.playersPerTeam ? selectedSport.playersPerTeam  : 1 }).map((_, i) => (
+                            <TextField
+                              select
+                              label={`Opponent ${i+1}`}
+                              fullWidth
+                              margin="normal"
+                              value={players.find(p => p.teamid === x + 2 && p.teamPosition === i + 1)?.playerId || ''}
+                              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                handleSelectPlayer(e.target.value, x + 2, i + 1);
+                                setOpponentId(e.target.value);
+                              }}
+                            >
+                              {opponents
+                                .filter(opponent => !selectedPlayerIds.includes(opponent.id) ||
+                                  players.find(p => p.teamid === x + 2 && p.teamPosition === i + 1)?.playerId === opponent.id
+                                )
+                                .map((opponent) => (
+                                  <MenuItem key={opponent.id} value={opponent.id}>
+                                    {opponent.displayName || opponent.email || opponent.id}
+                                  </MenuItem>
+                              ))}
+                            </TextField>
+                          ))}
+                        </Box>
+                      ))}
 
-              </Stack>
+                  </Stack>
+                )}
+              </>
             )}
           </>
         )}
-
         {/* Score Inputs */}
-        <Box display="flex" gap={2} mt={2}>
-          <TextField
-            label="Your Score"
-            type="number"
-            fullWidth
-            value={score.player1}
-            onChange={(e) => setScore({ ...score, player1: Number(e.target.value) })}
-            required
-            inputProps={{ min: 0 }}
-          />
-          <TextField
-            label="Opponent's Score"
-            type="number"
-            fullWidth
-            value={score.player2}
-            onChange={(e) => setScore({ ...score, player2: Number(e.target.value) })}
-            required
-            inputProps={{ min: 0 }}
-          />
-        </Box>
+        <Divider sx={{mt:2}}>Score Inputs</Divider>
+        {selectedSport?.trackByPlayer ? (
+          <>
+            {selectedSport && 'customStats' in selectedSport && selectedSport.customStats && players.length > 0 && (
+              <Box mt={3}>
+                {players.map((player => (
+                  <Accordion key={player.playerId}>
+                    <AccordionSummary
+                      expandIcon={<span>▼</span>}
+                      aria-controls={`player-${player.playerId}-content`}
+                      id={`player-${player.playerId}-header`}
+                    >
+                      <Typography>
+                        {player.displayName || player.playerId}
+                      </Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                      {selectedSport?.customStats?.map((stat) => (
+                        <TextField
+                          key={stat.name}
+                          label={stat.name}
+                          type={stat.dataType === 'number' ? 'number' : 'text'}
+                          fullWidth
+                          margin="normal"
+                          // You should manage stat values in state, e.g. statValues[player.playerId][stat.name]
+                          value={
+                            statValues?.[player.playerId]?.[stat.name] ?? ''
+                          }
+                          onChange={e => {
+                            setStatValues(prev => ({
+                              ...prev,
+                              [player.playerId]: {
+                                ...(prev?.[player.playerId] || {}),
+                                [stat.name]: e.target.value
+                              }
+                            }));
+                          }}
+                        />
+                      ))}
+                    </AccordionDetails>
+                  </Accordion>
+                )))}
+              </Box>
+            )}
+          </>
+        ) : (
+          <Box display="flex" gap={2} mt={2}>
+            <TextField
+              label="Your Score"
+              type="number"
+              fullWidth
+              value={score.player1}
+              onChange={(e) => setScore({ ...score, player1: Number(e.target.value) })}
+              required
+              inputProps={{ min: 0 }}
+            />
+            <TextField
+              label="Opponent's Score"
+              type="number"
+              fullWidth
+              value={score.player2}
+              onChange={(e) => setScore({ ...score, player2: Number(e.target.value) })}
+              required
+              inputProps={{ min: 0 }}
+            />
+          </Box>
+        )}
 
         {/* Winner Display */}
         {sport && opponentId && (score.player1 !== score.player2) && (

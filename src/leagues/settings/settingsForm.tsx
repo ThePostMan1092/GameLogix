@@ -31,9 +31,10 @@ interface SportSetupDialogProps {
   onClose: () => void;
   leagueId?: string;
   onSportAdded?: () => void;
+  editingSport?: Sport;
 }
 
-export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded }: SportSetupDialogProps) {
+export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded, editingSport }: SportSetupDialogProps) {
   const { user } = useAuth();
   const params = useParams();
   const currentLeagueId = leagueId || params.leagueId;
@@ -44,13 +45,45 @@ export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  const openSavedSport = (savedSport: Sport) => {
+    setSport(savedSport);
+    setFormData({
+      name: savedSport.name || '',
+      sportCategory: savedSport.sportCategory || '',
+      description: savedSport.description || '',
+      gameType: savedSport.gameType || '',
+      teamFormat: savedSport.teamFormat || '',
+      recordLayout: savedSport.recordLayout || '',
+      numberOfTeams: savedSport.numberOfTeams ?? 2,
+      playersPerTeam: savedSport.playersPerTeam ?? 2,
+      trackByPlayer: savedSport.trackByPlayer ?? false,
+      useRounds: savedSport.useRounds ?? false,
+      roundsName: savedSport.roundsName || '',
+      winCondition: savedSport.winCondition || '',
+      winPoints: savedSport.winPoints ?? '',
+      winRounds: savedSport.winRounds ?? '',
+      canTie: savedSport.canTie ?? false,
+      winBy: savedSport.winBy || '',
+      playStyle: savedSport.playStyle || '',
+      customStats: savedSport.customStats ? savedSport.customStats : [],
+      customSpecialRules: savedSport.customSpecialRules ? savedSport.customSpecialRules : [],
+      adjustable: savedSport.adjustable ?? true,
+      // Add any other fields you need to support editing
+    });
+    setStep(0); // Optionally reset to first step
+  };
+
   // Fetch data when dialog opens
   useEffect(() => {
-    if (open && currentLeagueId) {
-      // Dialog is open and we have a league ID
-      // Any initialization can go here if needed
+    if (open && editingSport) {
+      openSavedSport(editingSport);
+    } else if (open && !editingSport) {
+      // Reset form for new sport
+      setFormData({});
+      setSport(null);
+      setStep(0);
     }
-  }, [open, currentLeagueId]);
+  }, [open, editingSport]);
 
   const handleChange = (field: string, value: any) => {
     setFormData(prev => ({
