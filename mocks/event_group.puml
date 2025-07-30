@@ -24,21 +24,7 @@ skinparam backgroundcolor #FEFFFF
           
 }
         } 
-        |{
-        <b>Participant Type
-          ( ) Individual
-         ( ) <color:blue>Team
-  }{{<b> Participants</b>   
-         {+ <&magnifying-glass> Search   }}
-       {T-
-        ☐ <i><color:gray>Select all
-        ☑ Participant 1 
-        ☐ Participant 2 
-        ☑ Participant 3 
-        ☑ Participant 4 
-        ☐ Participant 5 
-        ☐ Participant 6 
-       }}
+
         
 
     }
@@ -47,6 +33,8 @@ skinparam backgroundcolor #FEFFFF
 }
 }
 Notes:  
+- Probably should be a two-modal wizard with select participants in the second modal 
+to allow users to indicate calendar availability
 - Elements in <color:blue>blue </color> link to management modals
 - A tournament can contain 1+ events
 - Consider enforcing the same team size for all events in a group
