@@ -1,0 +1,29 @@
+@startsalt
+{
+{+
+    {* Partricipant Selection}
+{        <b>Participant Type
+          ( ) Individual
+         ( ) <color:blue>Team
+}|
+{<b> Participants</b>   
+{+ <&magnifying-glass> Search   }
+       {T-
+        ☐ <i><color:gray>Select all
+        ☑ Participant 1 
+        ☐ Participant 2 
+        ☑ Participant 3 
+        ☑ Participant 4 
+        ☐ Participant 5 
+        ☐ Participant 6 
+       }
+[Cancel]| [Submit]
+}
+ 
+}
+Notes:
+- General purpose modal can be leveraged for anything 
+that requires participant selection (event creation, 
+team management, messaging, etc)
+}
+@endsalt
