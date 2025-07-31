@@ -11,7 +11,7 @@ import { type Sport } from '../types/sports.ts';
 import SmallTeam from './PlayerSelectionBlocks/smallTeam.tsx';
 import RoundBased from './RecordScoreBlocks/roundBased.tsx';
 
-interface teamPostitioning {
+export interface teamPostitioning {
   teamid: number;
   teamPosition: number;
   playerId: string;
@@ -189,19 +189,28 @@ const RecordGame: React.FC = () => {
           </Select>
         </FormControl>
         {selectedSport?.numberOfTeams === 2 && typeof selectedSport?.playersPerTeam === 'number' && selectedSport.playersPerTeam <= 5 && (
-          <SmallTeam
-            selectedSport={selectedSport}
-            leagueMembers={opponents || []}
-            onSelectionChange={setPlayers}
-        
-          />
+        <SmallTeam
+          selectedSport={selectedSport}
+          leagueMembers={[ // <-- include the user!
+            {
+              id: user?.uid,
+              displayName: user?.displayName || user?.email || 'You',
+              email: user?.email,
+            },
+            ...opponents
+          ]}
+          onSelectionChange={players => {
+            setPlayers(players);
+            console.log(players);
+          }}
+        />
         )}
 
         {/* Score Inputs */}
-        {selectedSport?.numberOfTeams === 2 && selectedSport?.useRounds && (
+        {selectedSport?.numberOfTeams === 2 && selectedSport?.useRounds && typeof selectedSport?.playersPerTeam === 'number' && players.length === selectedSport.playersPerTeam * 2 &&  (
           <RoundBased
             selectedSport={selectedSport}
-            leagueMembers={opponents}
+            players={players}
             onSubmit={(gameStats) => {
               console.log('Game Stats:', gameStats);
             }}

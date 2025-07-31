@@ -31,6 +31,27 @@ const SmallTeam: React.FC<SmallTeamProps> = ({leagueMembers, selectedSport, onSe
   const {user} = useAuth();
   const [opponents] = useState<Player[]>(leagueMembers.filter(member => member.id !== user?.uid));
   const [players, setPlayers] = useState<teamPostitioning[]>([]);
+  useEffect(() => {
+    if (!user) return;
+    setPlayers(prevPlayers => {
+      // If user is already present, do nothing
+      if (prevPlayers.some(p => p.playerId === user.uid && p.teamid === 1 && p.teamPosition === 0)) {
+        return prevPlayers;
+      }
+      // Add user as first player on team 1
+      const userPlayer: teamPostitioning = {
+        teamid: 1,
+        teamPosition: 0,
+        playerId: user.uid,
+        displayName: user.displayName || user.email || 'You'
+      };
+      // Remove any duplicate user entry
+      const filtered = prevPlayers.filter(p => p.playerId !== user.uid);
+      const updated = [userPlayer, ...filtered];
+      if (onSelectionChange) onSelectionChange(updated);
+      return updated;
+    });
+  }, [user, selectedSport.playersPerTeam, onSelectionChange]);
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([user?.uid ?? '']);
   const selectedPlayerIds = players.map(p => p.playerId);
 
@@ -45,12 +66,13 @@ const SmallTeam: React.FC<SmallTeamProps> = ({leagueMembers, selectedSport, onSe
       };
       const updated = [...filtered, newPlayer];
       if (onSelectionChange) onSelectionChange(updated);
+      console.log(players);
       return updated;
     });
   };
 
   useEffect(() => {
-    console.log('Selected players:', selectedPlayers);
+    console.log('opponents:', selectedPlayers);
     setSelectedPlayers(prev => [user?.uid ?? '', ...prev.slice(1, selectedSport.playersPerTeam)]);
   }, [user?.uid, selectedSport.playersPerTeam]);
 
@@ -81,14 +103,14 @@ const SmallTeam: React.FC<SmallTeamProps> = ({leagueMembers, selectedSport, onSe
                 handleSelectPlayer(e.target.value, 1, i + 1);
               }}
             >
-              {opponents
-                .filter(opponent => 
-                  !selectedPlayerIds.includes(opponent.id) ||
-                  players.find(p => p.teamid === 1 && p.teamPosition === i + 1)?.playerId === opponent.id
+              {leagueMembers
+                .filter(member => 
+                  !selectedPlayerIds.includes(member.id) ||
+                  players.find(p => p.teamid === 1 && p.teamPosition === i + 1)?.playerId === member.id
                 )
-                .map((opponent) => (
-                  <MenuItem key={opponent.id} value={opponent.id}>
-                    {opponent.displayName || opponent.email || opponent.id}
+                .map((member) => (
+                  <MenuItem key={member.id} value={member.id}>
+                    {member.displayName || member.email || member.id}
                   </MenuItem>
               ))}
             </TextField>

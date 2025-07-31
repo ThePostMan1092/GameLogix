@@ -4,10 +4,14 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { type Sport, type CustomStat } from '../../types/sports';
 import CloseIcon from '@mui/icons-material/Close';
 import { v4 as uuidv4 } from 'uuid'; // npm install uuid
+// If teamPostitioning is a default export:
+import{ type teamPostitioning } from '../RecordGame'; // adjust path as needed
+
+// Define a type for players (adjust as needed based on your user structure)
 
 interface RoundBasedProps {
   selectedSport: Sport;
-  leagueMembers: Array<{ id: string; displayName?: string; email?: string }>;
+  players: teamPostitioning[];
   onSubmit?: (data: GameStats) => void;
 }
 
@@ -41,10 +45,10 @@ interface PlayerStats {
   stats: { [statName: string]: string | number };
 }
 
-const RoundBased: React.FC<RoundBasedProps> = ({ selectedSport, leagueMembers }) => {
+const RoundBased: React.FC<RoundBasedProps> = ({ selectedSport, players}) => {
   type RoundMeta = { id: string; idx: number; label: string };
-  const team1Players = leagueMembers.slice(0, selectedSport.playersPerTeam || 1);
-  const team2Players = leagueMembers.slice(selectedSport.playersPerTeam || 1, (selectedSport.playersPerTeam || 1) * 2);
+  const team1Players = (players ?? []).slice(0, selectedSport.playersPerTeam || 1);
+  const team2Players = (players ?? []).slice(selectedSport.playersPerTeam || 1, (selectedSport.playersPerTeam || 1) * 2);
   const [rounds, setRounds] = useState<RoundMeta[]>([{ id: uuidv4(), idx: 0, label: 'Round 1' }]);
 
   const [teamScores, setTeamScores] = useState<{ [roundId: string]: { team1: number; team2: number } }>({
@@ -55,7 +59,7 @@ const [roundPlayerStats, setRoundPlayerStats] = useState<{
   [roundId: string]: { [playerId: string]: { [statName: string]: string | number } }
 }>({
   [rounds[0].id]: Object.fromEntries(
-    [...team1Players, ...team2Players].map(player => [player.id, {}])
+    [...team1Players, ...team2Players].map(player => [player.playerId, {}])
   )
 });
  
@@ -92,7 +96,7 @@ const [roundPlayerStats, setRoundPlayerStats] = useState<{
       setRoundPlayerStats(prev => ({
         ...prev,
         [newId]: Object.fromEntries(
-          [...team1Players, ...team2Players].map(player => [player.id, {}])
+          [...team1Players, ...team2Players].map(player => [player.playerId, {}])
         )
       }));
     }
@@ -211,11 +215,11 @@ const [roundPlayerStats, setRoundPlayerStats] = useState<{
             {selectedSport.trackByPlayer && (
               <Box>
                 <Divider sx={{ mb: 1 }}>Player Stats</Divider>
-                {[...team1Players, ...team2Players].map(player => (
-                  <Accordion key={player.id + '-' + round.id}>
+                {(players ?? []).map(player => (
+                  <Accordion key={player.playerId + '-' + round.id}>
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                       <Typography>
-                        {player.displayName || player.email || player.id}
+                        {player.displayName || player.playerId}
                       </Typography>
                     </AccordionSummary>
                     <AccordionDetails>
@@ -226,11 +230,11 @@ const [roundPlayerStats, setRoundPlayerStats] = useState<{
                           type={stat.dataType === 'number' ? 'number' : 'text'}
                           fullWidth
                           margin="normal"
-                          value={roundPlayerStats[round.id]?.[player.id]?.[stat.name] ?? ''}
+                          value={roundPlayerStats[round.id]?.[player.playerId]?.[stat.name] ?? ''}
                           onChange={e =>
                             handleRoundStatChange(
                               round.id,
-                              player.id,
+                              player.playerId,
                               stat.name,
                               e.target.value
                             )
