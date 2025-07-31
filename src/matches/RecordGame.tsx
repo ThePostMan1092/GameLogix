@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Typography, Box, Button, MenuItem, TextField, CircularProgress, Alert, FormControl, InputLabel, Select,
-  Divider, Accordion, AccordionSummary, AccordionDetails
+import { Typography, Box, Button, MenuItem, CircularProgress, Alert, FormControl, InputLabel, Select,
  } from '@mui/material';
 import { collection, addDoc, doc, getDoc, getDocs } from 'firebase/firestore';
 import { db } from '../Backend/firebase';
@@ -32,10 +31,10 @@ const RecordGame: React.FC = () => {
   const [league, setLeague] = useState<any>(null);
   const [sports, setSports] = useState<Sport[]>([]);
   const [selectedSport, setSelectedSport] = useState<Sport | null>(null);
-  const [statValues, setStatValues] = useState<Record<string, Record<string, string | number>>>({});
   const [players, setPlayers] = useState<teamPostitioning[]>([]);
 
   useEffect(() => {
+    console.log(players);
     const fetchLeague = async () => {
       if (!leagueId) return;
 

@@ -2,8 +2,7 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../Backend/AuthProvider';
-import { Box, Typography, TextField, Accordion, AccordionSummary, AccordionDetails, MenuItem, Divider, Stack } from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { Box, Typography, TextField, MenuItem, Divider, Stack } from '@mui/material';
 import { type Sport } from '../../types/sports';
 
 // Types
@@ -30,8 +29,7 @@ interface SmallTeamProps {
 
 const SmallTeam: React.FC<SmallTeamProps> = ({leagueMembers, selectedSport, onSelectionChange}) => {
   const {user} = useAuth();
-  const [opponents, setOpponents] = useState<Player[]>(leagueMembers.filter(member => member.id !== user?.uid));
-  const [opponentId, setOpponentId] = useState<string>('');
+  const [opponents] = useState<Player[]>(leagueMembers.filter(member => member.id !== user?.uid));
   const [players, setPlayers] = useState<teamPostitioning[]>([]);
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([user?.uid ?? '']);
   const selectedPlayerIds = players.map(p => p.playerId);
@@ -52,7 +50,7 @@ const SmallTeam: React.FC<SmallTeamProps> = ({leagueMembers, selectedSport, onSe
   };
 
   useEffect(() => {
-    // Always include current user as first slot
+    console.log('Selected players:', selectedPlayers);
     setSelectedPlayers(prev => [user?.uid ?? '', ...prev.slice(1, selectedSport.playersPerTeam)]);
   }, [user?.uid, selectedSport.playersPerTeam]);
 
@@ -110,7 +108,6 @@ const SmallTeam: React.FC<SmallTeamProps> = ({leagueMembers, selectedSport, onSe
                 value={players.find(p => p.teamid === x + 2 && p.teamPosition === i + 1)?.playerId || ''}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   handleSelectPlayer(e.target.value, x + 2, i + 1);
-                  setOpponentId(e.target.value);
                 }}
               >
                 {opponents
