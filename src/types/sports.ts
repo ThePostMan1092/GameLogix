@@ -140,7 +140,7 @@ const pingPongDoubles: Sport = {
     },
     {
       name: 'Aces',
-      dataType: 'counter',
+      dataType: 'number',
       unit: 'aces',
       description: 'Unreturnable serves',
       defaultValue: 0

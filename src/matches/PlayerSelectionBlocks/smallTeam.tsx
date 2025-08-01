@@ -29,10 +29,10 @@ interface SmallTeamProps {
 
 const SmallTeam: React.FC<SmallTeamProps> = ({leagueMembers, selectedSport, onSelectionChange}) => {
   const {user} = useAuth();
-  const [opponents] = useState<Player[]>(leagueMembers.filter(member => member.id !== user?.uid));
   const [players, setPlayers] = useState<teamPostitioning[]>([]);
   useEffect(() => {
     if (!user) return;
+    
     setPlayers(prevPlayers => {
       // If user is already present, do nothing
       if (prevPlayers.some(p => p.playerId === user.uid && p.teamid === 1 && p.teamPosition === 0)) {
@@ -47,34 +47,32 @@ const SmallTeam: React.FC<SmallTeamProps> = ({leagueMembers, selectedSport, onSe
       };
       // Remove any duplicate user entry
       const filtered = prevPlayers.filter(p => p.playerId !== user.uid);
-      const updated = [userPlayer, ...filtered];
-      if (onSelectionChange) onSelectionChange(updated);
-      return updated;
+      return [userPlayer, ...filtered];
     });
-  }, [user, selectedSport.playersPerTeam, onSelectionChange]);
-  const [selectedPlayers, setSelectedPlayers] = useState<string[]>([user?.uid ?? '']);
+  }, [user, selectedSport.playersPerTeam]);
+
+  // Separate useEffect to notify parent of player changes
+  useEffect(() => {
+    if (onSelectionChange) {
+      onSelectionChange(players);
+    }
+  }, [players, onSelectionChange]);
+  
   const selectedPlayerIds = players.map(p => p.playerId);
 
   const handleSelectPlayer = (playerId: string, teamId: number, position: number) => {
     setPlayers(prevPlayers => {
       const filtered = prevPlayers.filter(p => !(p.teamid === teamId && p.teamPosition === position));
+      const selectedMember = leagueMembers.find(member => member.id === playerId);
       const newPlayer: teamPostitioning = {
         teamid: teamId,
         teamPosition: position,
         playerId: playerId,
-        displayName: opponents.find(opponent => opponent.id === playerId)?.displayName || ''
+        displayName: selectedMember?.displayName || selectedMember?.email || ''
       };
-      const updated = [...filtered, newPlayer];
-      if (onSelectionChange) onSelectionChange(updated);
-      console.log(players);
-      return updated;
+      return [...filtered, newPlayer];
     });
   };
-
-  useEffect(() => {
-    console.log('opponents:', selectedPlayers);
-    setSelectedPlayers(prev => [user?.uid ?? '', ...prev.slice(1, selectedSport.playersPerTeam)]);
-  }, [user?.uid, selectedSport.playersPerTeam]);
 
   return (
     <>
@@ -94,6 +92,7 @@ const SmallTeam: React.FC<SmallTeamProps> = ({leagueMembers, selectedSport, onSe
           />
           {Array.from({ length: selectedSport.playersPerTeam ? selectedSport.playersPerTeam - 1 : 0 }).map((_, i) => (
             <TextField
+              key={`team1-player-${i}`}
               select
               label={`Teammate ${i+1}`}
               fullWidth
@@ -105,6 +104,7 @@ const SmallTeam: React.FC<SmallTeamProps> = ({leagueMembers, selectedSport, onSe
             >
               {leagueMembers
                 .filter(member => 
+                  member.id !== user?.uid && // Prevent user from being selected again
                   !selectedPlayerIds.includes(member.id) ||
                   players.find(p => p.teamid === 1 && p.teamPosition === i + 1)?.playerId === member.id
                 )
@@ -117,12 +117,13 @@ const SmallTeam: React.FC<SmallTeamProps> = ({leagueMembers, selectedSport, onSe
           ))}
         </Box>
         {Array.from({ length: (selectedSport.numberOfTeams ?? 2) - 1 }).map((_, x) => (
-          <Box key={x} alignItems="center" display="flex" flexDirection="column" sx={{ flex: 1, mx: 2 }}>
+          <Box key={`team-${x + 2}`} alignItems="center" display="flex" flexDirection="column" sx={{ flex: 1, mx: 2 }}>
             <Typography variant="h4" sx={{ mb: 0 }}>
               Team {x + 2}
             </Typography>
             {Array.from({ length: selectedSport.playersPerTeam ? selectedSport.playersPerTeam  : 1 }).map((_, i) => (
               <TextField
+                key={`team${x + 2}-player-${i}`}
                 select
                 label={`Opponent ${i+1}`}
                 fullWidth
@@ -132,14 +133,15 @@ const SmallTeam: React.FC<SmallTeamProps> = ({leagueMembers, selectedSport, onSe
                   handleSelectPlayer(e.target.value, x + 2, i + 1);
                 }}
               >
-                {opponents
-                  .filter(opponent => !selectedPlayerIds.includes(opponent.id) ||
-                    players.find(p => p.teamid === x + 2 && p.teamPosition === i + 1)?.playerId === opponent.id
-                  )
-                  .map((opponent) => (
-                    <MenuItem key={opponent.id} value={opponent.id}>
-                      {opponent.displayName || opponent.email || opponent.id}
-                    </MenuItem>
+                {leagueMembers
+                .filter(member => 
+                  !selectedPlayerIds.includes(member.id) ||
+                  players.find(p => p.teamid === x + 2 && p.teamPosition === i + 1)?.playerId === member.id
+                )
+                .map((member) => (
+                  <MenuItem key={member.id} value={member.id}>
+                    {member.displayName || member.email || member.id}
+                  </MenuItem>
                 ))}
               </TextField>
             ))}

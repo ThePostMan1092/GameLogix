@@ -12,7 +12,7 @@ import FormLabel from '@mui/material/FormLabel';
 import FormControl from '@mui/material/FormControl';
 import { type Sport, sportParent } from '../../types/sports.ts'; 
 import sports from '../../types/sports.ts'; // Import the default export
-import { collection, addDoc } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, doc } from 'firebase/firestore';
 import { db } from '../../Backend/firebase';
 import { useAuth } from '../../Backend/AuthProvider';
 import { useParams } from 'react-router-dom';
@@ -200,8 +200,15 @@ export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded
       const sportToSave = sportData;
 
       // Save to Firestore
-      const sportsCollectionRef = collection(db, 'leagues', currentLeagueId, 'sports');
-      await addDoc(sportsCollectionRef, sportToSave);
+      if (editingSport && editingSport.id) {
+        // Update existing sport
+        const sportRef = doc(db, 'leagues', currentLeagueId, 'sports', editingSport.id);
+        await updateDoc(sportRef, sportToSave); // formValues = your updated sport data
+      } else {
+        // Create new sport
+        const sportsRef = collection(db, 'leagues', currentLeagueId, 'sports');
+        await addDoc(sportsRef, sportToSave);
+      }
 
       // Reset form and close dialog
       setFormData({});
