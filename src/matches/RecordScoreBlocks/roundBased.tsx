@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, Typography, TextField, Accordion, AccordionSummary, AccordionDetails, Divider, Stack, Button } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { type Sport, type CustomStat } from '../../types/sports';
@@ -9,7 +9,7 @@ import{ type teamPostitioning } from '../RecordGame'; // adjust path as needed
 import { DataGrid, type GridColDef, type GridRowsProp } from '@mui/x-data-grid';
 import type { GameStats, Team, Round, PlayerMatchStats, Match } from '../../types/matches';
 import { Timestamp } from 'firebase/firestore';
-import { collection, addDoc, doc} from 'firebase/firestore';
+import { collection, addDoc} from 'firebase/firestore';
 import { db } from '../../Backend/firebase';
 import { useAuth } from '../../Backend/AuthProvider';
 
@@ -210,6 +210,7 @@ const [roundPlayerStats, setRoundPlayerStats] = useState<{
     setLoading(true);
     setError('');
     setSuccess('');
+    console.log(loading, error, success)
 
     try {
       const gameStats = buildGameStats();
@@ -288,7 +289,7 @@ const [roundPlayerStats, setRoundPlayerStats] = useState<{
       },
     ];
 
-    const statColumns: GridColDef[] = selectedSport.customStats?.map((stat: CustomStat) => ({
+    const statColumns: GridColDef[] = selectedSport.customStats?.filter(stat => stat.affectsScore).map((stat: CustomStat) => ({
       field: stat.name,
       headerName: stat.name,
       width: 120,
@@ -298,8 +299,52 @@ const [roundPlayerStats, setRoundPlayerStats] = useState<{
       align: 'center' as const,
     })) || [];
 
-    return [...baseColumns, ...statColumns];
+    const otherColumns: GridColDef[] = selectedSport.customStats?.filter(stat => !stat.affectsScore).map((stat: CustomStat) => ({
+      field: stat.name,
+      headerName: stat.name,
+      width: 120,
+      editable: true,
+      type: stat.dataType === 'number' ? 'number' : 'string',
+      headerAlign: 'center' as const,
+      align: 'center' as const,
+    })) || [];
+
+    return [...baseColumns, ...statColumns, ...otherColumns];
   };
+
+  useEffect(() => {
+    // Debug: show which stats are being summed
+    const mainScoreStats = selectedSport.customStats?.filter(stat => stat.affectsScore) || [];
+    console.log('Main score stats:', mainScoreStats);
+
+    const updatedScores: { [roundId: string]: { team1: number; team2: number } } = {};
+    rounds.forEach(round => {
+      mainScoreStats.forEach(stat => {
+        const allRows = players.map(player => {
+          const playerStats = roundPlayerStats[round.id]?.[player.playerId] || {};
+          let score = 0;
+          if (stat.dataType === 'number') {
+            score = Number(playerStats[stat.name]) || 0;
+          } else if (stat.dataType === 'counter' && stat.pointValue) {
+            score = Number(playerStats[stat.name]) * stat.pointValue || 0;
+          }
+          return {
+            teamid: player.teamid,
+            score: score
+          };
+        });
+
+        console.log('All rows for round', round.id, allRows);
+        updatedScores[round.id] = {
+          team1: allRows.filter(r => r.teamid === 1).reduce((sum, r) => sum + r.score, 0),
+          team2: allRows.filter(r => r.teamid === 2).reduce((sum, r) => sum + r.score, 0)
+        };
+        console.log(`Updated scores for round ${round.id}:`, updatedScores[round.id]);
+      });
+    });
+
+    setTeamScores(updatedScores);
+  }, [roundPlayerStats, rounds, players, selectedSport.customStats]);
 
   return (
     <Box>
@@ -370,31 +415,33 @@ const [roundPlayerStats, setRoundPlayerStats] = useState<{
             </Box>
           </AccordionSummary>
           <AccordionDetails sx={{ backgroundColor: 'background.paper', opacity: 0.85 }}>
-            <Stack direction="row" gap={4} sx={{ mb: 2 }}>
-              {(['team1', 'team2'] as const).map((team, tIdx) => (
-                <Box key={team} sx={{ flex: 1 }}>
-                  <TextField
-                    label={`Team ${tIdx + 1} Score`}
-                    type="number"
-                    variant="standard"
-                    value={teamScores[round.id]?.[team] ?? 0}
-                    onChange={e => {
-                      const value = Number(e.target.value);
-                      setTeamScores(prev => ({
-                        ...prev,
-                        [round.id]: {
-                          ...prev[round.id],
-                          [team]: value
-                        }
-                      }));
-                    }}
-                    fullWidth
-                    margin="normal"
-                    inputProps={{ min: 0 }}
-                  />
-                </Box>
-              ))}
-            </Stack>
+            {(!selectedSport.trackByPlayer) && (
+              <Stack direction="row" gap={4} sx={{ mb: 2 }}>
+                {(['team1', 'team2'] as const).map((team, tIdx) => (
+                  <Box key={team} sx={{ flex: 1 }}>
+                    <TextField
+                      label={`Team ${tIdx + 1} Score`}
+                      type="number"
+                      variant="standard"
+                      value={teamScores[round.id]?.[team] ?? 0}
+                      onChange={e => {
+                        const value = Number(e.target.value);
+                        setTeamScores(prev => ({
+                          ...prev,
+                          [round.id]: {
+                            ...prev[round.id],
+                            [team]: value
+                          }
+                        }));
+                      }}
+                      fullWidth
+                      margin="normal"
+                      inputProps={{ min: 0 }}
+                    />
+                  </Box>
+                ))}
+              </Stack>
+            )}
             {selectedSport.trackByPlayer && selectedSport.customStats && selectedSport.customStats.length > 0 && (
               <Box>
                 <Divider sx={{ mb: 2 }}>Player Stats</Divider>

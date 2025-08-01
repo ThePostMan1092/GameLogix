@@ -96,6 +96,10 @@ const RecordGame: React.FC = () => {
     setSuccess('Match recorded successfully!');
   };
 
+  const logValue = (value: any) => {
+    console.log('Value changed:', value);
+  }
+
   
   
   return (
@@ -125,11 +129,12 @@ const RecordGame: React.FC = () => {
           </Select>
         </FormControl>
         {selectedSport?.numberOfTeams === 2 && typeof selectedSport?.playersPerTeam === 'number' && selectedSport.playersPerTeam <= 5 && (
-        <SmallTeam
-          selectedSport={selectedSport}
-          leagueMembers={[ // <-- include the user!
-            {
-              id: user?.uid,
+          logValue(selectedSport),
+          <SmallTeam
+            selectedSport={selectedSport}
+            leagueMembers={[ // <-- include the user!
+              {
+                id: user?.uid,
               displayName: user?.displayName || user?.email || 'You',
               email: user?.email,
             },
@@ -142,7 +147,7 @@ const RecordGame: React.FC = () => {
         )}
 
         {/* Score Inputs */}
-        {selectedSport?.numberOfTeams === 2 && selectedSport?.useRounds && typeof selectedSport?.playersPerTeam === 'number' && players.length === selectedSport.playersPerTeam * 2 && leagueId && (
+        {selectedSport?.numberOfTeams === 2 && selectedSport?.useRounds && typeof selectedSport?.playersPerTeam === 'number' && players.length > 0 && leagueId && (
           <RoundBased
             selectedSport={selectedSport}
             players={players}

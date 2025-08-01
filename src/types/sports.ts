@@ -18,6 +18,8 @@ export interface CustomStat {
   maxValue?: number | null;
   defaultValue?: string | number | boolean | null;
   decimalPlaces?: number;
+  affectsScore: boolean;
+  pointValue?: number;
 }
 
 export interface SpecialRule {
@@ -74,22 +76,30 @@ const basketballFullTeam: Sport = {
   activeTrack: false,
   customStats: [
     {
-      name: 'Points',
-      dataType: 'number',
+      name: 'Two-Pointers',
+      dataType: 'counter',
       unit: 'points',
-      description: 'Points scored by the team',
       minValue: 0,
-      maxValue: 200,
-      defaultValue: 0,
-      decimalPlaces: 0
+      affectsScore: true,
+      pointValue: 2
+    },
+    {
+      name: 'Three-Pointers',
+      dataType: 'counter',
+      unit: 'points',
+      minValue: 0,
+      affectsScore: true,
+      pointValue: 3
     },
     {
       name: 'Fouls',
       dataType: 'counter',
       unit: 'fouls',
       description: 'Team fouls committed',
-      defaultValue: 0
-    }
+      defaultValue: 0,
+      affectsScore: false
+    },
+
   ],
   customSpecialRules: [
     {
@@ -136,14 +146,16 @@ const pingPongDoubles: Sport = {
       minValue: 0,
       maxValue: 21,
       defaultValue: 0,
-      decimalPlaces: 0
+      decimalPlaces: 0,
+      affectsScore: true
     },
     {
       name: 'Aces',
       dataType: 'number',
       unit: 'aces',
       description: 'Unreturnable serves',
-      defaultValue: 0
+      defaultValue: 0,
+      affectsScore: false
     }
   ],
   customSpecialRules: [
@@ -186,21 +198,24 @@ const bowlingSolo: Sport = {
       minValue: 0,
       maxValue: 300,
       defaultValue: 0,
-      decimalPlaces: 0
+      decimalPlaces: 0,
+      affectsScore: true
     },
     {
       name: 'Strikes',
       dataType: 'counter',
       unit: 'strikes',
       description: 'Number of strikes bowled',
-      defaultValue: 0
+      defaultValue: 0,
+      affectsScore: false
     },
     {
       name: 'Spares',
       dataType: 'counter',
       unit: 'spares', 
       description: 'Number of spares bowled',
-      defaultValue: 0
+      defaultValue: 0,
+      affectsScore: false
     }
   ],
   customSpecialRules: [
@@ -248,14 +263,17 @@ const pickleballDoubles: Sport = {
       minValue: 0,
       maxValue: 21,
       defaultValue: 0,
-      decimalPlaces: 0
+      decimalPlaces: 0,
+      affectsScore: true
     },
     {
       name: 'Aces',
       dataType: 'counter',
       unit: 'aces',
       description: 'Number of aces served',
-      defaultValue: 0
+      defaultValue: 0,
+      decimalPlaces: 0,
+      affectsScore: false
     }
   ],
   customSpecialRules: [

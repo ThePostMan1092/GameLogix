@@ -1,7 +1,7 @@
 import { useState, useEffect} from 'react';
 import {
   Dialog, DialogTitle, DialogContent, DialogActions, MenuItem, Select, Switch, Box, Typography, Grid,
-  ToggleButton, ToggleButtonGroup, Accordion, AccordionSummary, AccordionDetails
+  ToggleButton, ToggleButtonGroup, Accordion, AccordionSummary, AccordionDetails, Checkbox
 } from '@mui/material';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
@@ -500,7 +500,7 @@ export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded
             {/* Add new stat form */}
             <Box sx={{ border: 1, borderColor: 'grey.400', borderRadius: 1, p: 2, backgroundColor: 'grey.50' }}>
               <Typography variant="subtitle1" gutterBottom>Add New Stat</Typography>
-              <Grid container spacing={2}>
+              <Grid container spacing={2} alignItems="center">
                 <Grid size={6}>
                   <TextField
                     fullWidth
@@ -527,7 +527,18 @@ export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded
                     <MenuItem value="counter">Counter</MenuItem>
                   </Select>
                 </Grid>
-                <Grid size={4}>
+                <Grid size={2}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={(formData as any).mainScore || false}
+                        onChange={e => handleChange('mainScore', e.target.checked)}
+                      />
+                    }
+                    label="Points"
+                  />
+                </Grid>
+                <Grid size={3}>
                   <TextField
                     fullWidth
                     size="small"
@@ -537,7 +548,7 @@ export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded
                     onChange={e => handleChange('newStatUnit', e.target.value)}
                   />
                 </Grid>
-                <Grid size={8}>
+                <Grid size={7}>
                   <TextField
                     fullWidth
                     size="small"
@@ -608,7 +619,8 @@ export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded
                         minValue: (formData as any).newStatMin ? Number((formData as any).newStatMin) : null,
                         maxValue: (formData as any).newStatMax ? Number((formData as any).newStatMax) : null,
                         defaultValue: (formData as any).newStatDefault || null,
-                        decimalPlaces: (formData as any).newStatDecimals ? Number((formData as any).newStatDecimals) : 0
+                        decimalPlaces: (formData as any).newStatDecimals ? Number((formData as any).newStatDecimals) : 0,
+                        affectsScore: (formData as any).mainScore || false
                       };
                       
                       const existingStats = (formData as any).customStats || [];
@@ -641,8 +653,11 @@ export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded
                       <Grid size={6}>
                         <Typography variant="body2"><strong>Type:</strong> {stat.dataType}</Typography>
                       </Grid>
-                      <Grid size={6}>
+                      <Grid size={3}>
                         <Typography variant="body2"><strong>Unit:</strong> {stat.unit || 'N/A'}</Typography>
+                      </Grid>
+                       <Grid size={3}>
+                        <Typography variant="body2"><strong>Affects Score:</strong> {stat.affectsScore ? 'Yes' : 'No'}</Typography>
                       </Grid>
                       <Grid size={12}>
                         <Typography variant="body2"><strong>Description:</strong> {stat.description || 'No description'}</Typography>
