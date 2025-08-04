@@ -1,4 +1,4 @@
-import React, { Suspense, useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useState, useRef} from 'react';
 import { AuthProvider, useAuth } from './Backend/AuthProvider';
 import { Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom';
 import { Divider, Badge, Typography, Button, Container, Box, CssBaseline, ThemeProvider, createTheme, CircularProgress } from '@mui/material';
@@ -15,33 +15,80 @@ interface MainLayoutProps {
   leftSidebar?: React.ReactNode;
 }
 
-const MainLayout: React.FC<MainLayoutProps> = ({ children, leftSidebar }) => (
-  <Box sx={{ display: 'flex', width: 1, minHeight: '100vh', bgcolor: '#1C2A25' }}>
-    {/* Left Sidebar */}
-    {leftSidebar && (
-      <Box
-        sx={{
+
+const MainLayout: React.FC<MainLayoutProps> = ({ children, leftSidebar }) => {
+  const sidebarRef = useRef<HTMLDivElement>(null);
+  const layoutRef = useRef<HTMLDivElement>(null);
+  const [sidebarStyle, setSidebarStyle] = useState<React.CSSProperties>({});
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!sidebarRef.current || !layoutRef.current) return;
+      const sidebar = sidebarRef.current;
+      const layout = layoutRef.current;
+      const sidebarHeight = sidebar.offsetHeight;
+      const layoutRect = layout.getBoundingClientRect();
+      const sidebarRect = sidebar.getBoundingClientRect();
+
+      // Calculate bottom of layout relative to viewport
+      const layoutBottom = layoutRect.bottom;
+      const viewportHeight = window.innerHeight;
+
+      // If sidebar bottom would go past layout bottom, set position absolute at bottom
+      if (sidebarRect.bottom > layoutBottom) {
+        setSidebarStyle({
+          position: 'absolute',
+          bottom: 0,
+          top: 'auto',
           width: 350,
-          bgcolor: '#2E3A35',
-          borderRight: '1px solid #222', // Correct: border on the right for left sidebar
-          boxShadow: '2px 0 8px 0 rgba(0,0,0,0.08)', // Correct: shadow to the right
-          display: 'flex',
-          flexDirection: 'column',
-          height: '100vh',
+        });
+      } else {
+        setSidebarStyle({
           position: 'sticky',
           top: 0,
-          zIndex: 100,
-        }}
-      >
-        {leftSidebar}
+          width: 350,
+        });
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('resize', handleScroll);
+    handleScroll();
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleScroll);
+    };
+  }, []);
+
+  return (
+    <Box ref={layoutRef} sx={{ display: 'flex', width: 1, minHeight: '100vh', bgcolor: '#1C2A25', position: 'relative' }}>
+      {/* Left Sidebar */}
+      {leftSidebar && (
+        <Box
+          ref={sidebarRef}
+          sx={{
+            bgcolor: '#2E3A35',
+            borderRight: '1px solid #222',
+            boxShadow: '2px 0 8px 0 rgba(0,0,0,0.08)',
+            display: 'flex',
+            flexDirection: 'column',
+            height: 'auto',
+            zIndex: 100,
+            overflowY: 'auto',
+            ...sidebarStyle,
+          }}
+        >
+          {leftSidebar}
+        </Box>
+      )}
+      {/* Main Content */}
+      <Box sx={{ flex: 1, p: 0, overflow: 'auto', width: 1 }}>
+        {children}
       </Box>
-    )}
-    {/* Main Content */}
-    <Box sx={{ flex: 1, p: 0, overflow: 'auto', width: 1}}>
-      {children}
     </Box>
-  </Box>
-);
+  );
+};
 
 export { MainLayout };
 
@@ -159,7 +206,7 @@ const Dashboard = React.lazy(() => import('./Dashboard'));
 const RecordGame = React.lazy(() => import('./matches/RecordGame'));
 const Scoreboard = React.lazy(() => import('./matches/Scoreboard'));
 const ScheduleGame = React.lazy(() => import('./matches/ScheduleGame'));
-const Home = React.lazy(() => import('./Home'));
+const AppHome = React.lazy(() => import('./PlayerHome'));
 const CreateLeagueForm = React.lazy(() => import('./leagues/CreateLeagueForm'));
 const JoinLeague = React.lazy(() => import('./leagues/JoinLeague'));
 const NewLeague = React.lazy(() => import('./leagues/NewLeague'));
@@ -168,8 +215,14 @@ const LeagueSettings = React.lazy(() => import('./leagues/leagueSettings'));
 const LeagueLayout = React.lazy(() => import('./leagues/LeagueLayout'));
 const NewTournament = React.lazy(() => import('./tournaments/NewTourny'));
 const LeagueDashboard = React.lazy(() => import('./leagues/LeagueDashboard'));
-/*const Scoreboards = React.lazy(() => import('./Scoreboards'));
-const TournamentMaker = React.lazy(() => import('./TournamentMaker'));*/
+const BusinessHome = React.lazy(() => import('./BusinessHome/homePage'));
+const AboutPage = React.lazy(() => import('./BusinessHome/aboutPage'));
+const PricingPage = React.lazy(() => import('./BusinessHome/pricingPage'));
+const FeaturesPage = React.lazy(() => import('./BusinessHome/featuresPage'));
+const ContactPage = React.lazy(() => import('./BusinessHome/contactPage'));
+//const TournamentMaker = React.lazy(() => import('./tournaments/TournamentMaker'));
+//const Scoreboards = React.lazy(() => import('./tournaments/Scoreboards'));
+
   
 
 function ProtectedRoute({ children }: { children: React.ReactElement }) {
@@ -232,7 +285,7 @@ const LeftSidebar: React.FC = () => {
   // You can expand this with league info, chat, etc.
   return (
     <Box sx={{ p: 3, color: 'text.primary', flex: 1, display: 'flex', flexDirection: 'column' }}>
-      <Button component={Link} to="/Home"><Typography variant="h5" color="primary.main" fontSize={48} fontWeight={1000} mb={2}>Game Logix</Typography></Button> 
+      <Button component={Link} to="/"><Typography variant="h5" color="primary.main" fontSize={48} fontWeight={1000} mb={2}>Game Logix</Typography></Button> 
       <Box display="flex" flexDirection="column" gap={2} mb={4}>
         <Badge
           color="primary"
@@ -383,7 +436,7 @@ import type { User } from 'firebase/auth';
 
 const globalRoutes = (user: User | null) => [
   <Route path="/dashboard" element={<ProtectedRoute><DashboardWrapper><Dashboard /></DashboardWrapper></ProtectedRoute>} />,
-  <Route path="/Home" element={<ProtectedRoute><Home /></ProtectedRoute>} />,
+  <Route path="/appHome" element={<ProtectedRoute><AppHome /></ProtectedRoute>} />,
   <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <Login />} />,
   <Route path="/register" element={user ? <Navigate to="/dashboard" replace /> : <Register />} />,
   <Route path="/leagues/create" element={<ProtectedRoute><CreateLeagueForm /></ProtectedRoute>} />,
@@ -411,18 +464,28 @@ const LeagueRoutes = () => {
 
 function AppContent() {
   const { user } = useAuth();
+  
   return (
-    <MainLayout leftSidebar={<LeftSidebar />}>
-      <Container sx={{ mt: 4, mb: 4, maxWidth: 'lg' }}>
-        <Suspense fallback={<Box display="flex" justifyContent="center" mt={8}><CircularProgress /></Box>}>
-          <Routes>
-            {globalRoutes(user)}
-            {LeagueRoutes()}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Suspense>
-      </Container>
-    </MainLayout>
+    <Suspense fallback={<Box display="flex" justifyContent="center" mt={8}><CircularProgress /></Box>}>
+      <Routes>
+        {/* Business/Marketing pages without sidebar */}
+        <Route path="/" element={<BusinessHome />} />
+        <Route path="/businessHome" element={<BusinessHome />} />
+        
+        {/* App pages with sidebar */}
+        <Route path="/*" element={
+          <MainLayout leftSidebar={<LeftSidebar />}>
+            <Container sx={{ mt: 4, mb: 4, maxWidth: 'lg' }}>
+              <Routes>
+                {globalRoutes(user)}
+                {LeagueRoutes()}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Container>
+          </MainLayout>
+        } />
+      </Routes>
+    </Suspense>
   );
 }
 

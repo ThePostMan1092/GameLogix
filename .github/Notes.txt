@@ -15,10 +15,6 @@ New player entries:
     - when first register go to specific intro description page
     - when join new league auto refresh page (to make league appear) and go to new league home page
 
-
-
 Record UI:
     - make score solid object
     - make points vs rounds winning
-    - no rounds tracking player stats (Ten)
-    - make individual competition player select (Ten)
