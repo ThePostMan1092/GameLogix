@@ -9,6 +9,8 @@ import { useParams } from 'react-router-dom';
 import { type Sport } from '../types/sports.ts';
 import SmallTeam from './PlayerSelectionBlocks/smallTeam.tsx';
 import RoundBased from './RecordScoreBlocks/roundBased.tsx';
+import IndividualComp from './PlayerSelectionBlocks/individualComp.tsx';
+import IndividualPoints from './RecordScoreBlocks/individualPoints.tsx';
 
 export interface teamPostitioning {
   teamid: number;
@@ -128,6 +130,25 @@ const RecordGame: React.FC = () => {
             {sports.map(s => <MenuItem key={s.id} value={s.name}>{s.name}</MenuItem>)}
           </Select>
         </FormControl>
+
+        {selectedSport && selectedSport.teamFormat === 'individuals' && (
+          <IndividualComp
+            selectedSport={selectedSport}
+            leagueMembers={[
+              {
+                id: user?.uid,
+                displayName: user?.displayName || user?.email || 'You',
+                email: user?.email,
+              },
+              ...opponents
+            ]}
+            onSelectionChange={players => {
+              setPlayers(players);
+            }}
+          />
+        
+        )}
+
         {selectedSport?.numberOfTeams === 2 && typeof selectedSport?.playersPerTeam === 'number' && selectedSport.playersPerTeam <= 5 && (
           logValue(selectedSport),
           <SmallTeam
@@ -149,6 +170,15 @@ const RecordGame: React.FC = () => {
         {/* Score Inputs */}
         {selectedSport?.numberOfTeams === 2 && selectedSport?.useRounds && typeof selectedSport?.playersPerTeam === 'number' && players.length > 0 && leagueId && (
           <RoundBased
+            selectedSport={selectedSport}
+            players={players}
+            leagueId={leagueId}
+            onSuccess={handleSuccess}
+          />
+        )}
+
+        {selectedSport && selectedSport.teamFormat === 'individuals' && !selectedSport.useRounds && leagueId && (
+          <IndividualPoints
             selectedSport={selectedSport}
             players={players}
             leagueId={leagueId}

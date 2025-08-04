@@ -1,0 +1,24 @@
+league Settings:
+    
+    - Create members/Admin tab
+
+    Admin Mode:
+        - Not including in game scoring
+        - limit setting access
+
+    Custom Stats:
+        - clear info after adding
+        - add edit Stat
+    
+New player entries:
+    - make basic company type home page
+    - when first register go to specific intro description page
+    - when join new league auto refresh page (to make league appear) and go to new league home page
+
+
+
+Record UI:
+    - make score solid object
+    - make points vs rounds winning
+    - no rounds tracking player stats (Ten)
+    - make individual competition player select (Ten)
