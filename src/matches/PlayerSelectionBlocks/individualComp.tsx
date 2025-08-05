@@ -119,7 +119,7 @@ const IndividualComp: React.FC<IndividualCompProps> = ({
           <Box display="flex" alignItems="center" gap={1}>
             <Chip 
               label={`${players.length}/${maxPlayers} Players`} 
-              color={players.length >= 2 ? "success" : "warning"}
+              color={players.length >= 2 ? "default" : "secondary"}
               size="small"
             />
             <IconButton 
@@ -194,8 +194,8 @@ const IndividualComp: React.FC<IndividualCompProps> = ({
         </Stack>
 
         {players.length < 2 && (
-          <Box sx={{ mt: 2, p: 2, bgcolor: 'warning.light', borderRadius: 1 }}>
-            <Typography variant="body2" color="warning.dark">
+          <Box sx={{ mt: 2, p: 2, bgcolor: 'secondary.main', borderRadius: 1 }}>
+            <Typography variant="body2" color="primary.main">
               You need at least 2 players for a competition. Click the + button to add more players.
             </Typography>
           </Box>

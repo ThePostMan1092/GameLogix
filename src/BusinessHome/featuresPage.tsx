@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Typography, Container, Grid, Card, CardContent, CardMedia } from '@mui/material';
+import { Box, Typography, Container, Grid, Card} from '@mui/material';
 import { 
   EmojiEvents, Analytics, Groups, SportsSoccer, 
   Timeline, Security, PhoneIphone, IntegrationInstructions
@@ -110,7 +110,7 @@ const FeaturesPage: React.FC = () => {
 
       {/* Main Features Grid */}
       <Grid container spacing={4} sx={{ mb: 12 }}>
-        {features.map((feature, index) => (
+        {features.map((feature) => (
           <Grid size={6}>
             <Card sx={{ height: '100%', p: 3, textAlign: 'center' }}>
               <Box sx={{ color: 'primary.main', mb: 2 }}>

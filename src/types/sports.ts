@@ -1,4 +1,4 @@
-export const sportParent = ['Ping Pong', 'Basketball', 'Bowling', 'Spikeball', 'Ten'] as const;
+export const sportParent = ['Ping Pong', 'Basketball', 'Bowling', 'Spikeball', 'Ten', 'Custom'] as const;
 
 export const scoringTypes = [
   {type: 'solo competition round based', sports: ['Bowling', 'Golf', 'poker' ]},

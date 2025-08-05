@@ -211,10 +211,6 @@ const IndividualPoints: React.FC<IndividualPointsProps> = ({
       <Divider sx={{ mt: 3, mb: 2 }}>Score Recording</Divider>
       
       <Box sx={{ mt: 2, mb: 2 }}>
-        <Typography variant="h5" sx={{ mb: 2 }}>
-          Individual Competition Scoring
-        </Typography>
-        
         <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
           Record the final scores and stats for each player. Players will be ranked by their scores.
         </Typography>
@@ -233,7 +229,8 @@ const IndividualPoints: React.FC<IndividualPointsProps> = ({
 
         <Stack spacing={2}>
           {players.map((player, index) => (
-            <Accordion key={player.teamid} disabled={!player.playerId}>
+            <Accordion key={player.teamid} disabled={!player.playerId}
+              >
               <AccordionSummary
                 expandIcon={<ExpandMoreIcon />}
                 aria-controls={`player-${player.teamid}-content`}
@@ -260,18 +257,6 @@ const IndividualPoints: React.FC<IndividualPointsProps> = ({
                   </Box>
                   
                   <Box display="flex" alignItems="center" gap={2} sx={{ mr: 2 }}>
-                    {/* Display score-affecting stats in summary */}
-                    <TextField
-                      label="Score"
-                      type="number"
-                      value={playerScores[player.playerId] || 0}
-                      onChange={(e) => handleScoreChange(player.playerId, parseInt(e.target.value) || 0)}
-                      disabled={!player.playerId}
-                      size="small"
-                      sx={{ width: 100 }}
-                      inputProps={{ min: 0 }}
-                      onClick={(e) => e.stopPropagation()}
-                    />
                     
                     {getScoreAffectingStats().map((stat: CustomStat) => (
                       <TextField

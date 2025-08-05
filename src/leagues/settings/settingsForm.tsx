@@ -10,7 +10,7 @@ import RadioGroup from '@mui/material/RadioGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import FormLabel from '@mui/material/FormLabel';
 import FormControl from '@mui/material/FormControl';
-import { type Sport, sportParent } from '../../types/sports.ts'; 
+import { type Sport} from '../../types/sports.ts'; 
 import sports from '../../types/sports.ts'; // Import the default export
 import { collection, addDoc, updateDoc, doc } from 'firebase/firestore';
 import { db } from '../../Backend/firebase';
@@ -98,7 +98,11 @@ export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded
     if (selectedValue === 'custom') {
       // Reset to empty sport for custom configuration
       setSport(null);
-      setFormData({});
+      setFormData({
+        name: 'Custom Sport',
+        sportParent: 'Custom',
+        adjustable: true,
+      });
     } else {
       // Find the predefined sport from sports.ts
       const predefinedSport = sports.find((s: Sport) => s.name === selectedValue);
@@ -236,8 +240,7 @@ export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded
             <FormControl fullWidth margin="normal">
               <FormLabel>Select Game to add</FormLabel>
               <Select
-                sx={{ mb: 1 }}
-                value={sport?.name || ''}
+                value={sport?.name || (formData as any).name || ''}
                 onChange={handleSportSelection}
               >
                 {sports.map((sport: Sport) => (
@@ -248,21 +251,6 @@ export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded
                 <MenuItem key="add-custom" value="custom">
                   Add Custom Game
                 </MenuItem>
-              </Select>
-            </FormControl>
-
-            <FormControl fullWidth margin="normal">
-              <FormLabel>Select Game Parent</FormLabel>
-              <Select
-                value={(formData as any).sportParent || ''}
-                onChange={e => handleChange('sportParent', e.target.value)}
-                fullWidth
-              >
-                {(Array.isArray(sportParent) ? sportParent : []).map((Parent: string) => (
-                  <MenuItem key={Parent} value={Parent}>
-                    {Parent}
-                  </MenuItem>
-                ))} 
               </Select>
             </FormControl>
 

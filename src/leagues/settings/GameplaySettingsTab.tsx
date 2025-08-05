@@ -130,8 +130,195 @@ const openSavedSport = (sport: any) => {
                         </Box>
                       </AccordionSummary>
                         <AccordionDetails>
-                        <Box sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
                           <Typography variant="h6">{sport.displayName}</Typography>
+                          
+                          {/* Comprehensive Sport Settings Display */}
+                          <Box sx={{ mb: 3 }}>
+                            <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 2 }}>
+                              Sport Configuration:
+                            </Typography>
+                            
+                            {/* Competition Structure */}
+                            <Box sx={{ mb: 2 }}>
+                              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 'bold', display: 'block', mb: 1 }}>
+                                Competition Structure:
+                              </Typography>
+                              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 1 }}>
+                                <Chip size="small" label={`Game Type: ${sport.gameType || 'Competition'}`} color="primary" variant="outlined" />
+                                <Chip size="small" label={`Format: ${sport.teamFormat || 'Teams'}`} color="primary" variant="outlined" />
+                                {sport.numberOfTeams && (
+                                  <Chip size="small" label={`${sport.numberOfTeams} Teams`} color="info" variant="outlined" />
+                                )}
+                                {sport.playersPerTeam && (
+                                  <Chip size="small" label={`${sport.playersPerTeam} Players per Team`} color="info" variant="outlined" />
+                                )}
+                                {sport.playStyle && (
+                                  <Chip size="small" label={`${sport.playStyle} Play`} color="secondary" variant="outlined" />
+                                )}
+                              </Box>
+                            </Box>
+
+                            {/* Win Conditions */}
+                            <Box sx={{ mb: 2 }}>
+                              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 'bold', display: 'block', mb: 1 }}>
+                                Win Conditions:
+                              </Typography>
+                              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 1 }}>
+                                {sport.winCondition && (
+                                  <Chip size="small" label={sport.winCondition} color="success" variant="outlined" />
+                                )}
+                                {sport.winPoints && sport.winPoints > 0 && (
+                                  <Chip size="small" label={`${sport.winPoints} Points to Win`} color="success" variant="outlined" />
+                                )}
+                                {sport.winRounds && sport.winRounds > 0 && (
+                                  <Chip size="small" label={`${sport.winRounds} Rounds to Win`} color="success" variant="outlined" />
+                                )}
+                                {sport.winBy && sport.winBy > 0 && (
+                                  <Chip size="small" label={`Win by ${sport.winBy}`} color="warning" variant="outlined" />
+                                )}
+                                <Chip 
+                                  size="small" 
+                                  label={sport.canTie ? "Ties Allowed" : "No Ties"} 
+                                  color={sport.canTie ? "info" : "error"} 
+                                  variant="outlined" 
+                                />
+                              </Box>
+                            </Box>
+
+                            {/* Round System */}
+                            {sport.useRounds && (
+                              <Box sx={{ mb: 2 }}>
+                                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 'bold', display: 'block', mb: 1 }}>
+                                  Round System:
+                                </Typography>
+                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 1 }}>
+                                  <Chip size="small" label="Uses Rounds" color="primary" variant="outlined" />
+                                  {sport.roundsName && (
+                                    <Chip size="small" label={`Called: ${sport.roundsName}`} color="primary" variant="outlined" />
+                                  )}
+                                  {sport.maxRounds && sport.maxRounds > 0 && (
+                                    <Chip size="small" label={`Max: ${sport.maxRounds} Rounds`} color="primary" variant="outlined" />
+                                  )}
+                                  {sport.trackPerRound && (
+                                    <Chip size="small" label="Track Per Round" color="secondary" variant="outlined" />
+                                  )}
+                                </Box>
+                              </Box>
+                            )}
+
+                            {/* Tracking Options */}
+                            <Box sx={{ mb: 2 }}>
+                              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 'bold', display: 'block', mb: 1 }}>
+                                Tracking Options:
+                              </Typography>
+                              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 1 }}>
+                                <Chip 
+                                  size="small" 
+                                  label={sport.trackByPlayer ? "Track by Player" : "Track by Team"} 
+                                  color={sport.trackByPlayer ? "primary" : "default"} 
+                                  variant="outlined" 
+                                />
+                                <Chip 
+                                  size="small" 
+                                  label={sport.activeTrack ? "Active Tracking" : "Post-Game Entry"} 
+                                  color={sport.activeTrack ? "success" : "default"} 
+                                  variant="outlined" 
+                                />
+                                {sport.recordLayout && (
+                                  <Chip size="small" label={`${sport.recordLayout} Layout`} color="info" variant="outlined" />
+                                )}
+                              </Box>
+                            </Box>
+
+                            {/* Custom Statistics */}
+                            {sport.customStats?.length > 0 && (
+                              <Box sx={{ mb: 2 }}>
+                                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 'bold', display: 'block', mb: 1 }}>
+                                  Custom Statistics ({sport.customStats.length} total):
+                                </Typography>
+                                
+                                {/* Score-affecting stats */}
+                                {sport.customStats.filter((stat: any) => stat.affectsScore).length > 0 && (
+                                  <Box sx={{ mb: 1 }}>
+                                    <Typography variant="caption" color="success.main" sx={{ fontSize: '0.7rem', display: 'block', mb: 0.5 }}>
+                                      Score-Affecting Stats:
+                                    </Typography>
+                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 1 }}>
+                                      {sport.customStats.filter((stat: any) => stat.affectsScore).map((stat: any, index: number) => (
+                                        <Chip 
+                                          key={index}
+                                          size="small" 
+                                          label={`${stat.name}${stat.pointValue ? ` (+${stat.pointValue})` : ''}`}
+                                          color="success" 
+                                          variant="filled"
+                                          sx={{ fontSize: '0.7rem', height: '20px' }}
+                                        />
+                                      ))}
+                                    </Box>
+                                  </Box>
+                                )}
+
+                                {/* Non-score-affecting stats */}
+                                {sport.customStats.filter((stat: any) => !stat.affectsScore).length > 0 && (
+                                  <Box sx={{ mb: 1 }}>
+                                    <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem', display: 'block', mb: 0.5 }}>
+                                      Tracking-Only Stats:
+                                    </Typography>
+                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                                      {sport.customStats.filter((stat: any) => !stat.affectsScore).map((stat: any, index: number) => (
+                                        <Chip 
+                                          key={index}
+                                          size="small" 
+                                          label={stat.name}
+                                          color="default" 
+                                          variant="outlined"
+                                          sx={{ fontSize: '0.7rem', height: '20px' }}
+                                        />
+                                      ))}
+                                    </Box>
+                                  </Box>
+                                )}
+                              </Box>
+                            )}
+
+                            {/* Special Rules */}
+                            {sport.customSpecialRules?.length > 0 && (
+                              <Box sx={{ mb: 2 }}>
+                                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 'bold', display: 'block', mb: 1 }}>
+                                  Special Rules ({sport.customSpecialRules.length}):
+                                </Typography>
+                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                                  {sport.customSpecialRules.map((rule: any, index: number) => (
+                                    <Chip 
+                                      key={index}
+                                      size="small" 
+                                      label={rule.name}
+                                      color="warning" 
+                                      variant="outlined"
+                                      title={rule.description}
+                                      sx={{ fontSize: '0.7rem', height: '20px' }}
+                                    />
+                                  ))}
+                                </Box>
+                              </Box>
+                            )}
+
+                            {/* Default message - updated condition */}
+                            {!sport.useRounds && 
+                             !sport.trackByPlayer && 
+                             (!sport.customStats || sport.customStats.length === 0) &&
+                             (!sport.customSpecialRules || sport.customSpecialRules.length === 0) &&
+                             !sport.winCondition &&
+                             !sport.numberOfTeams &&
+                             !sport.playersPerTeam && (
+                              <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                                Using default settings - no custom configuration applied
+                              </Typography>
+                            )}
+                          </Box>
+                          
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                           <Button
                           size="small"
                           color="primary"
@@ -153,6 +340,7 @@ const openSavedSport = (sport: any) => {
                           >
                           Delete
                           </Button>
+                          </Box>
                         </Box>
                         </AccordionDetails>
                     </Accordion>

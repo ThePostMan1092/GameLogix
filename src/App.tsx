@@ -26,13 +26,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, leftSidebar }) => {
       if (!sidebarRef.current || !layoutRef.current) return;
       const sidebar = sidebarRef.current;
       const layout = layoutRef.current;
-      const sidebarHeight = sidebar.offsetHeight;
       const layoutRect = layout.getBoundingClientRect();
       const sidebarRect = sidebar.getBoundingClientRect();
 
       // Calculate bottom of layout relative to viewport
       const layoutBottom = layoutRect.bottom;
-      const viewportHeight = window.innerHeight;
+
 
       // If sidebar bottom would go past layout bottom, set position absolute at bottom
       if (sidebarRect.bottom > layoutBottom) {
@@ -216,10 +215,6 @@ const LeagueLayout = React.lazy(() => import('./leagues/LeagueLayout'));
 const NewTournament = React.lazy(() => import('./tournaments/NewTourny'));
 const LeagueDashboard = React.lazy(() => import('./leagues/LeagueDashboard'));
 const BusinessHome = React.lazy(() => import('./BusinessHome/homePage'));
-const AboutPage = React.lazy(() => import('./BusinessHome/aboutPage'));
-const PricingPage = React.lazy(() => import('./BusinessHome/pricingPage'));
-const FeaturesPage = React.lazy(() => import('./BusinessHome/featuresPage'));
-const ContactPage = React.lazy(() => import('./BusinessHome/contactPage'));
 //const TournamentMaker = React.lazy(() => import('./tournaments/TournamentMaker'));
 //const Scoreboards = React.lazy(() => import('./tournaments/Scoreboards'));
 

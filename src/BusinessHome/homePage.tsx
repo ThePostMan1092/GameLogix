@@ -7,6 +7,58 @@ import AboutPage from './aboutPage';
 import PricingPage from './pricingPage';
 import FeaturesPage from './featuresPage';
 import ContactPage from './contactPage';
+import { styled } from '@mui/material/styles';
+
+interface StyledTabsProps {
+  children?: React.ReactNode;
+  value: number;
+  onChange: (event: React.SyntheticEvent, newValue: number) => void;
+}
+
+interface StyledTabProps {
+  label: string;
+}
+
+const StyledTabs = styled((props: StyledTabsProps) => (
+  <Tabs
+    {...props}
+    TabIndicatorProps={{ children: <span className="MuiTabs-indicatorSpan" /> }}
+  />
+))({
+  '& .MuiTabs-indicator': {
+    display: 'flex',
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
+  },
+  '& .MuiTabs-indicatorSpan': {
+    maxWidth: 40,
+    width: '100%',
+    backgroundColor: '#E2B5A6',
+  },
+});
+
+const StyledTab = styled((props: StyledTabProps) => (
+  <Tab disableRipple {...props} />
+))(({ theme }) => ({
+  textTransform: 'none',
+  fontWeight: theme.typography.fontWeightRegular,
+  fontSize: theme.typography.pxToRem(15),
+  marginRight: theme.spacing(5),
+  color: theme.palette.primary.main,
+  '&.Mui-selected': {
+    color: '#E2B5A6',
+  },
+  '&.Mui-focusVisible': {
+    backgroundColor: 'background.default',
+    boxShadow: 'none',
+    outline: 'none',
+  },
+  '&:focus': {
+    backgroundColor: 'transparent', // Remove highlight on focus
+    boxShadow: 'none',
+    outline: 'none',
+  },
+}));
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
@@ -50,6 +102,19 @@ const HomePage: React.FC = () => {
           >
             GameLogix
           </Typography>
+          {/* Tab Navigation */}
+          <Box>
+            <StyledTabs 
+              value={currentTab} 
+              onChange={handleTabChange} 
+            >
+              <StyledTab label="Home" />
+              <StyledTab label="Features" />
+              <StyledTab label="Pricing" />
+              <StyledTab label="About" />
+              <StyledTab label="Contact" />
+            </StyledTabs>
+          </Box>
 
           {/* Auth Buttons */}
           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
@@ -70,28 +135,7 @@ const HomePage: React.FC = () => {
           </Box>
         </Toolbar>
 
-        {/* Tab Navigation */}
-        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-          <Tabs 
-            value={currentTab} 
-            onChange={handleTabChange} 
-            centered
-            sx={{
-              '& .MuiTab-root': {
-                fontSize: '1rem',
-                fontWeight: 500,
-                textTransform: 'none',
-                minWidth: 120,
-              }
-            }}
-          >
-            <Tab label="Home" />
-            <Tab label="Features" />
-            <Tab label="Pricing" />
-            <Tab label="About" />
-            <Tab label="Contact" />
-          </Tabs>
-        </Box>
+        
       </AppBar>
 
       {/* Tab Content */}

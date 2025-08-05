@@ -105,7 +105,7 @@ const PricingPage: React.FC = () => {
                   }}
                 >
                   <Star sx={{ fontSize: 16 }} />
-                  <Typography variant="caption" fontWeight="bold">
+                  <Typography variant="caption" fontWeight="bold" mt={0.5}>
                     MOST POPULAR
                   </Typography>
                 </Box>

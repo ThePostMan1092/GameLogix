@@ -252,12 +252,12 @@ const Scoreboard: React.FC = () => {
 
   // Define DataGrid columns
   const columns: GridColDef[] = [
-    { field: 'rank', headerName: 'Rank', width: 100, type: 'number' },
+    { field: 'rank', headerName: 'Rank', width: 200},
     { field: 'playerName', headerName: 'Player', width: 200 },
-    { field: 'gamesPlayed', headerName: 'Games Played', width: 140, type: 'number' },
-    { field: 'wins', headerName: 'Wins', width: 100, type: 'number' },
-    { field: 'losses', headerName: 'Losses', width: 100, type: 'number' },
-    { field: 'ties', headerName: 'Ties', width: 100, type: 'number' },
+    { field: 'gamesPlayed', headerName: 'Games Played', width: 140},
+    { field: 'wins', headerName: 'Wins', width: 100 },
+    { field: 'losses', headerName: 'Losses', width: 100 },
+    { field: 'ties', headerName: 'Ties', width: 100 },
     { 
       field: 'winPct', 
       headerName: 'Win %', 
@@ -265,9 +265,9 @@ const Scoreboard: React.FC = () => {
       type: 'number',
       renderCell: (params: GridRenderCellParams) => `${(params.value * 100).toFixed(1)}%`
     },
-    { field: 'pointsFor', headerName: 'Points For', width: 130, type: 'number' },
-    { field: 'pointsAgainst', headerName: 'Points Against', width: 150, type: 'number' },
-    { field: 'pointDiff', headerName: 'Point Diff', width: 130, type: 'number' },
+    { field: 'pointsFor', headerName: 'Points For', width: 130},
+    { field: 'pointsAgainst', headerName: 'Points Against', width: 150},
+    { field: 'pointDiff', headerName: 'Point Diff', width: 130},
     { 
       field: 'avgPointsFor', 
       headerName: 'Avg Points For', 
@@ -282,11 +282,11 @@ const Scoreboard: React.FC = () => {
       type: 'number',
       renderCell: (params: GridRenderCellParams) => params.value.toFixed(1)
     },
-    { field: 'gamesLast30Days', headerName: '30 Day Games', width: 140, type: 'number' },
-    { field: 'winStreakCurrent', headerName: 'Current Streak', width: 140, type: 'number' },
-    { field: 'winStreakBest', headerName: 'Best Streak', width: 130, type: 'number' },
-    { field: 'biggestWin', headerName: 'Biggest Win', width: 130, type: 'number' },
-    { field: 'biggestLoss', headerName: 'Biggest Loss', width: 130, type: 'number' },
+    { field: 'gamesLast30Days', headerName: '30 Day Games', width: 140 },
+    { field: 'winStreakCurrent', headerName: 'Current Streak', width: 140 },
+    { field: 'winStreakBest', headerName: 'Best Streak', width: 130 },
+    { field: 'biggestWin', headerName: 'Biggest Win', width: 130 },
+    { field: 'biggestLoss', headerName: 'Biggest Loss', width: 130 },
     { 
       field: 'rankScore', 
       headerName: 'Rank Score', 
@@ -303,7 +303,6 @@ const Scoreboard: React.FC = () => {
         field: `${stat.name}_total`,
         headerName: `${stat.name} Total`,
         width: 140,
-        type: 'number',
         renderCell: (params: GridRenderCellParams) => {
           const row = params.row as PlayerStatsRow;
           return row.customStats?.[stat.name]?.total?.toFixed(stat.dataType === 'number' ? 1 : 0) || '0';
@@ -313,7 +312,6 @@ const Scoreboard: React.FC = () => {
         field: `${stat.name}_highest`,
         headerName: `${stat.name} Highest`,
         width: 150,
-        type: 'number',
         renderCell: (params: GridRenderCellParams) => {
           const row = params.row as PlayerStatsRow;
           return row.customStats?.[stat.name]?.highest?.toFixed(stat.dataType === 'number' ? 1 : 0) || '0';
@@ -323,7 +321,6 @@ const Scoreboard: React.FC = () => {
         field: `${stat.name}_avg`,
         headerName: `${stat.name} Average`,
         width: 150,
-        type: 'number',
         renderCell: (params: GridRenderCellParams) => {
           const row = params.row as PlayerStatsRow;
           return row.customStats?.[stat.name]?.average?.toFixed(1) || '0.0';
@@ -370,54 +367,19 @@ const Scoreboard: React.FC = () => {
               sx={{
                 '& .MuiDataGrid-cell': {
                   borderBottom: '1px solid rgba(224, 224, 224, 1)',
+                  textAlign: 'left',
                 },
                 '& .MuiDataGrid-columnHeaders': {
                   backgroundColor: 'rgba(0, 0, 0, 0.04)',
                   borderBottom: '2px solid rgba(224, 224, 224, 1)',
-                  minHeight: '60px !important',
                 },
-                '& .MuiDataGrid-columnHeader': {
-                  padding: '0 8px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  '& .MuiDataGrid-columnHeaderTitleContainer': {
-                    display: 'flex',
-                    alignItems: 'center',
-                    flex: 1,
-                    minWidth: 0,
-                  },
-                  '& .MuiDataGrid-columnHeaderTitle': {
-                    fontWeight: 600,
-                    fontSize: '0.875rem',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    marginRight: '4px',
-                  },
-                  '& .MuiDataGrid-sortIcon': {
-                    width: '16px',
-                    height: '16px',
-                    marginLeft: '2px',
-                  },
-                  '& .MuiDataGrid-iconButtonContainer': {
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    width: '24px',
-                    height: '100%',
-                    marginLeft: 'auto',
-                    '& .MuiIconButton-root': {
-                      padding: '4px',
-                      fontSize: '1rem',
-                    },
-                  },
-                  '& .MuiDataGrid-menuIcon': {
-                    width: '16px',
-                    height: '16px',
-                  },
+                '& .MuiDataGrid-columnHeaderTitle': {
+                  justifyContent: 'flex-start',
+                  textAlign: 'left',
                 },
                 '& .MuiDataGrid-row:hover': {
                   backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                  textAlign: 'left',
                 },
               }}
             />
