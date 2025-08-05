@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Typography, Container, Grid, Card, CardContent, Avatar } from '@mui/material';
-import { LinkedIn, GitHub, Email } from '@mui/icons-material';
+import { LinkedIn, Email } from '@mui/icons-material';
 
 const AboutPage: React.FC = () => {
   const teamMembers = [

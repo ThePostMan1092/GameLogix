@@ -179,8 +179,8 @@ const openSavedSport = (sport: any) => {
                                 )}
                                 <Chip 
                                   size="small" 
-                                  label={sport.canTie ? "Ties Allowed" : "No Ties"} 
-                                  color={sport.canTie ? "info" : "error"} 
+                                  label={sport.cannotTie ? "No Ties" : "Ties Allowed"} 
+                                  color={sport.cannotTie ? "error" : "info"} 
                                   variant="outlined" 
                                 />
                               </Box>
@@ -304,11 +304,58 @@ const openSavedSport = (sport: any) => {
                               </Box>
                             )}
 
+                            {/* Tiebreaker Stats */}
+                            {sport.cannotTie && sport.tiebreakerStats?.length > 0 && (
+                              <Box sx={{ mb: 2 }}>
+                                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 'bold', display: 'block', mb: 1 }}>
+                                  Tiebreaker Rules ({sport.tiebreakerStats.length}):
+                                </Typography>
+                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                                  {sport.tiebreakerStats.map((tiebreaker: any, index: number) => (
+                                    <Box key={index} sx={{ 
+                                      display: 'flex', 
+                                      alignItems: 'center', 
+                                      gap: 1, 
+                                      p: 1, 
+                                      bgcolor: 'grey.50', 
+                                      borderRadius: 1,
+                                      border: '1px solid',
+                                      borderColor: 'secondary.main'
+                                    }}>
+                                      <Typography variant="caption" sx={{ 
+                                        minWidth: 20, 
+                                        fontWeight: 'bold', 
+                                        color: 'primary.main',
+                                        fontSize: '0.65rem' 
+                                      }}>
+                                        #{index + 1}
+                                      </Typography>
+                                      <Typography variant="caption" sx={{ 
+                                        flex: 1, 
+                                        fontSize: '0.7rem',
+                                        fontWeight: 'medium'
+                                      }}>
+                                        {tiebreaker.statName}
+                                      </Typography>
+                                      <Chip 
+                                        size="small"
+                                        label={tiebreaker.tiebreakerValue > 0 ? 'Higher wins' : 'Lower wins'}
+                                        color={tiebreaker.tiebreakerValue > 0 ? 'success' : 'warning'}
+                                        variant="outlined"
+                                        sx={{ fontSize: '0.65rem', height: '18px' }}
+                                      />
+                                    </Box>
+                                  ))}
+                                </Box>
+                              </Box>
+                            )}
+
                             {/* Default message - updated condition */}
                             {!sport.useRounds && 
                              !sport.trackByPlayer && 
                              (!sport.customStats || sport.customStats.length === 0) &&
                              (!sport.customSpecialRules || sport.customSpecialRules.length === 0) &&
+                             (!sport.tiebreakerStats || sport.tiebreakerStats.length === 0) &&
                              !sport.winCondition &&
                              !sport.numberOfTeams &&
                              !sport.playersPerTeam && (

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Typography, Container, Grid, Card, CardContent, TextField, Button, Alert } from '@mui/material';
+import { Box, Typography, Container, Grid, Card, TextField, Button, Alert } from '@mui/material';
 import { Email, Phone, LocationOn, Schedule } from '@mui/icons-material';
 
 const ContactPage: React.FC = () => {
