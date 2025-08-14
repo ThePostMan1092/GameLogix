@@ -4,7 +4,7 @@ A modern React + TypeScript web application for tracking corporate office sports
 
 ## View ERD
 
-https://dbdiagram.io/d/GameLogix-ERD-68892f41cca18e685c5362b3
+https://lucid.app/lucidchart/a47e0193-2269-4b9b-a863-4a747c583431/edit?viewport_loc=-2033%2C-1179%2C5709%2C2770%2C0_0&invitationId=inv_90428aca-b860-4d5a-9b3b-fc671a451972
 
 ## Features
 - Player profiles

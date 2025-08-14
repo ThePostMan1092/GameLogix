@@ -271,7 +271,7 @@ const IndividualPoints: React.FC<IndividualPointsProps> = ({
         gameStats
       };
 
-      const docRef = await addDoc(collection(db, 'matches'), matchData);
+      const docRef = await addDoc(collection(db, 'leagues', leagueId, 'sports', selectedSport.id, 'matches'), matchData);
       console.log('Match saved with ID:', docRef.id);
       
       setSuccess('Match recorded successfully!');

@@ -82,7 +82,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, leftSidebar }) => {
         </Box>
       )}
       {/* Main Content */}
-      <Box sx={{ flex: 1, p: 0, overflow: 'auto', width: 1 }}>
+      <Box sx={{ flex: 1, p: 2, overflow: 'auto', width: 1}}>
         {children}
       </Box>
     </Box>

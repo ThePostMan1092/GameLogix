@@ -225,8 +225,8 @@ const [roundPlayerStats, setRoundPlayerStats] = useState<{
         gameStats: gameStats
       };
 
-      // Save to Firestore
-      await addDoc(collection(db, 'matches'), match);
+      // Save to Firestore as subcollection within the sport
+      await addDoc(collection(db, 'leagues', leagueId, 'sports', selectedSport.id, 'matches'), match);
       
       setSuccess('Match recorded successfully!');
       
