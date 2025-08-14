@@ -201,7 +201,7 @@ const theme = createTheme({
 
 const Login = React.lazy(() => import('./users/Login'));
 const Register = React.lazy(() => import('./users/Register'));
-const Dashboard = React.lazy(() => import('./Dashboard'));
+const Dashboard = React.lazy(() => import('./playerProfile/Dashboard'));
 const RecordGame = React.lazy(() => import('./matches/RecordGame'));
 const Scoreboard = React.lazy(() => import('./matches/Scoreboard'));
 const ScheduleGame = React.lazy(() => import('./matches/ScheduleGame'));

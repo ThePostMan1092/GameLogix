@@ -2,6 +2,11 @@ league Settings:
     
     - Create members/Admin tab
 
+    configure sports:
+        - make sure values are clearing for on off switches
+        - start to adjust questions asked based on sportParent
+        - keep overall interview for custom sport
+    
     Admin Mode:
         - Not including in game scoring
         - limit setting access
@@ -16,5 +21,4 @@ New player entries:
     - when join new league auto refresh page (to make league appear) and go to new league home page
 
 Record UI:
-    - make score solid object
-    - make points vs rounds winning
+    - 

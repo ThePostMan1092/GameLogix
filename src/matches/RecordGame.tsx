@@ -149,7 +149,7 @@ const RecordGame: React.FC = () => {
         
         )}
 
-        {selectedSport?.sportParent.playerFormat === 'smallTeam' && selectedSport?.sportParent.scoringFormat === 'totalFewRounds' && (
+        {selectedSport?.sportParent.playerFormat === 'smallTeam' &&  (
           logValue(selectedSport),
           <SmallTeam
             selectedSport={selectedSport}
@@ -168,7 +168,7 @@ const RecordGame: React.FC = () => {
         )}
 
         {/* Score Inputs */}
-        {selectedSport?.numberOfTeams === 2 && selectedSport?.useRounds && typeof selectedSport?.playersPerTeam === 'number' && players.length > 0 && leagueId && (
+        {selectedSport?.sportParent.scoringFormat === 'roundWins' && leagueId && (
           <RoundBased
             selectedSport={selectedSport}
             players={players}
