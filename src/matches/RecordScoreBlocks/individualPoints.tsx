@@ -10,6 +10,7 @@ import { Timestamp } from 'firebase/firestore';
 import { collection, addDoc } from 'firebase/firestore';
 import { db } from '../../Backend/firebase';
 import { useAuth } from '../../Backend/AuthProvider';
+import { usePlayerStats } from '../../hooks/usePlayerStats';
 
 interface IndividualPointsProps {
   selectedSport: Sport;
@@ -25,6 +26,7 @@ const IndividualPoints: React.FC<IndividualPointsProps> = ({
   onSuccess 
 }) => {
   const { user } = useAuth();
+  const { updateMatchStats } = usePlayerStats();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -273,6 +275,21 @@ const IndividualPoints: React.FC<IndividualPointsProps> = ({
 
       const docRef = await addDoc(collection(db, 'leagues', leagueId, 'sports', selectedSport.id, 'matches'), matchData);
       console.log('Match saved with ID:', docRef.id);
+      
+      // Create complete match object with ID for stats update
+      const completeMatchData: Match = {
+        ...matchData,
+        id: docRef.id
+      };
+      
+      // Update player statistics
+      try {
+        await updateMatchStats(completeMatchData);
+        console.log('Player stats updated successfully');
+      } catch (statsError) {
+        console.error('Failed to update player stats:', statsError);
+        // Don't fail the entire operation if stats update fails
+      }
       
       setSuccess('Match recorded successfully!');
       onSuccess?.();

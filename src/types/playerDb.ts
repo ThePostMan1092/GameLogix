@@ -2,35 +2,6 @@
 
 export type GameType = 'pingpong' | 'foosball' | 'pool';
 
-export interface PingPongStats {
-  singles: {
-    wins: number;
-    losses: number;
-    pointsPlayed: number;
-    pointsWon: number;
-  };
-  doubles: {
-    wins: number;
-    losses: number;
-    pointsPlayed: number;
-    pointsWon: number;
-  };
-}
-
-export interface FoosballStats {
-  wins: number;
-  losses: number;
-  goalsScored: number;
-  goalsAllowed: number;
-}
-
-export interface PoolStats {
-  wins: number;
-  losses: number;
-  ballsSunk: number;
-  fouls: number;
-}
-
 export interface Player {
   id: string;
   name: string;
@@ -38,11 +9,6 @@ export interface Player {
   email?: string;
   leagues?: string[];
   avatarUrl?: string;
-  sports: {
-    [key: string]: {
-      stats: any; // Replace 'any' with the specific stats type from sports.ts if available
-    };
-  }
 }
 
 const STORAGE_KEY = 'corporate-sports-players';

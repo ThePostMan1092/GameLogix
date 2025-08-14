@@ -1,4 +1,10 @@
-export const sportParent = ['Ping Pong', 'Basketball', 'Bowling', 'Spikeball', 'Ten', 'Custom'] as const;
+export interface SportParent {
+  name: 'Ping Pong' | 'Basketball' | 'Bowling' | 'Spikeball' | 'Ten' | 'Custom' | 'Pickleball';
+  playerFormat: 'solo' | 'duel' | 'smallTeam' | 'mediumTeam' | 'largeTeam' | 'freeForAllSmall' | 'freeForAllLarge' | 
+  'relayTeam' | 'multiPair' | 'groupIndividual';
+  scoringFormat: 'totalFewRounds' | 'totalManyRounds' | 'roundWins' | 'timeBest' | 'timeLongest' | 'timeAverage' |
+  'accuracyScore' | 'distanceLongest' | 'distanceShortest' | 'elimination' | 'simpleScore';
+}
 
 export const scoringTypes = [
   {type: 'solo competition round based', sports: ['Bowling', 'Golf', 'poker' ]},
@@ -28,7 +34,7 @@ export interface SpecialRule {
 
 export interface Sport {
   id: string;
-  sportParent: typeof sportParent[number]; // restrict to allowed categories
+  sportParent: SportParent; // restrict to allowed categories
   name: string;
   description?: string;
   gameType: 'solo' | 'competition';
@@ -117,7 +123,7 @@ const basketballFullTeam: Sport = {
   createdAt: new Date(),
   createdBy: 'user123',
   adjustable: true,
-  sportParent: 'Basketball'
+  sportParent: {name: 'Basketball', playerFormat: 'largeTeam', scoringFormat: 'totalManyRounds'}
 }
 
 const pingPongDoubles: Sport = {
@@ -172,7 +178,7 @@ const pingPongDoubles: Sport = {
   createdAt: new Date(),
   createdBy: 'user123',
   adjustable: true,
-  sportParent: 'Ping Pong'
+  sportParent: {name: 'Ping Pong', playerFormat: 'smallTeam', scoringFormat: 'totalManyRounds'}
 }
 
 const bowlingSolo: Sport = {
@@ -233,7 +239,7 @@ const bowlingSolo: Sport = {
   createdAt: new Date(),
   createdBy: 'user123',
   adjustable: true,
-  sportParent: 'Bowling'
+  sportParent: {name: 'Bowling', playerFormat: 'freeForAllSmall', scoringFormat: 'totalManyRounds'}
 }
 
 const pickleballDoubles: Sport = {
@@ -277,7 +283,7 @@ const pickleballDoubles: Sport = {
   createdAt: new Date(),
   createdBy: 'user123',
   adjustable: true,
-  sportParent: 'Bowling'
+  sportParent: {name: 'Pickleball', playerFormat: 'freeForAllSmall', scoringFormat: 'totalManyRounds'}
 }
 
 const tenGame: Sport = {
@@ -342,7 +348,7 @@ const tenGame: Sport = {
   createdAt: new Date(),
   createdBy: 'user123',
   adjustable: true,
-  sportParent: 'Ten'
+  sportParent: {name: 'Ten', playerFormat: 'freeForAllSmall', scoringFormat: 'simpleScore'}
 }
 
 

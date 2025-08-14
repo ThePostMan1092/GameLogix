@@ -1,0 +1,33 @@
+1️⃣ Player Format Categories
+
+This is about number of participants and team structure.
+
+Code	                                Name	            Description	Examples
+solo	                                Solo	            1 player per match	Golf (single player challenge), Time trials
+duel	                                Duel / 1v1	        Two individuals	Ping pong singles, Boxing, Tennis singles
+smallTeam	                            Small Teams (2–5 players per team)	Cooperative or competitive play	Doubles tennis, Basketball 3v3, Beach volleyball
+mediumTeam	                            Medium Teams (6–11 players per team)	Full team sports with moderate roster size	Soccer, Basketball 5v5, Volleyball
+largeTeam	                            Large Teams (12+ players per team)	Usually rotational play, big rosters	American football, Cricket, Baseball
+freeForAllSmall	Small FFA (3–6 players)	Everyone competes individually	4-player Mario Kart, 5-way chess
+freeForAllLarge	Large FFA (7+ players)	Large-scale individual play	Poker tournament, Battle royale
+relayTeam	                            Relay Teams	Teams take turns contributing to a single score/time	Track relays, Swimming relays
+multiPair	                            Multi-Pair Cooperative	Multiple independent pairs in same game	Bridge, Badminton mixed doubles tournament
+groupIndividual	                        Grouped Individuals (separate scoring but in groups)	Olympic events where athletes compete for personal scores under a shared national/team banner	Gymnastics, Track meets
+
+
+2️⃣ Scoring / Win Condition Categories
+
+This is about how the game is decided and what is tracked.
+
+Code	                    Name	Description	Examples
+totalFewRounds	            Total Points – Few Rounds	Few scoring events per match; total determines winner	Basketball, Soccer
+totalManyRounds	            Total Points – Many Rounds	Many discrete scoring events; total sum matters	Bowling, Golf
+roundWins	                Win on Rounds	Match is divided into multiple sub-games/sets; first to certain number wins	Tennis, Ping pong
+timeBest	                Best Time Wins (Lower is better)	Shortest completion time is winner	Sprint race, Speedcubing
+timeLongest	                Longest Duration Wins (Higher is better)	Survive longest or last man standing	Endurance races, Marathon skating
+timeAverage	                Best Average Time	Consistency in time matters	Multiple lap races, Time trials with multiple heats
+accuracyScore	            Accuracy-Based Scoring	Percentage or precision-based	Archery, Darts
+distanceLongest	            Longest Distance Wins	Furthest measurable result	Javelin, Long jump
+distanceShortest	        Shortest Distance Wins	Closest to a target	Golf putting, Bocce
+elimination	                Elimination Order	Last remaining wins	Battle royale, Knockout tournaments
+simpleScore                 no rounds just one score per player/team
