@@ -10,13 +10,27 @@ const tabPages = [
 const LeagueDashboard = () => {
     const { leagueId } = useParams();
     return (
-        <Box sx={{ bgcolor: 'background.paper', borderRadius: 2, p: 1 }}>
-            <Box display="flex" gap={20} justifyContent="center" my={1} mb={2}>
+        <Box 
+            data-testid="league-dashboard"
+            className="league-dashboard"
+            sx={{ bgcolor: 'background.paper', borderRadius: 2, p: 1 }}
+        >
+            <Box 
+                data-testid="dashboard-tabs"
+                className="dashboard-tabs"
+                display="flex" 
+                gap={20} 
+                justifyContent="center" 
+                my={1} 
+                mb={2}
+            >
                 {tabPages.map(tab => (
                 <Button
                     key={tab.path}
                     component={NavLink}
                     to={`/League/${leagueId}/dashboard/${tab.path}`}
+                    data-testid={`tab-${tab.path.toLowerCase()}`}
+                    className={`dashboard-tab tab-${tab.path.toLowerCase()}`}
                     sx={{
                     color: 'text.primary',
                     bgcolor: '#f43d0a27',
@@ -35,7 +49,11 @@ const LeagueDashboard = () => {
                 </Button>
                 ))}
             </Box>
-            <Box sx={{ flexGrow: 1 }} >
+            <Box 
+                data-testid="dashboard-content"
+                className="dashboard-content"
+                sx={{ flexGrow: 1 }}
+            >
                 <Outlet />
             </Box>
         </Box>

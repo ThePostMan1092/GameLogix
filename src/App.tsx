@@ -1,7 +1,7 @@
 import React, { Suspense, useEffect, useState, useRef} from 'react';
 import { AuthProvider, useAuth } from './Backend/AuthProvider';
 import { Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom';
-import { Divider, Badge, Typography, Button, Container, Box, CssBaseline, ThemeProvider, createTheme, CircularProgress, Avatar } from '@mui/material';
+import { Divider, Badge, Typography, Button, Box, CssBaseline, ThemeProvider, createTheme, CircularProgress, Avatar } from '@mui/material';
 import Grid from '@mui/material/Grid';
 import MailIcon from '@mui/icons-material/Mail';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
@@ -12,18 +12,22 @@ import { db } from './Backend/firebase';
 interface MainLayoutProps {
   children: React.ReactNode;
   leftSidebar?: React.ReactNode;
+  rightSidebar?: React.ReactNode;
 }
 
 
-const MainLayout: React.FC<MainLayoutProps> = ({ children, leftSidebar }) => {
+const MainLayout: React.FC<MainLayoutProps> = ({ children, leftSidebar, rightSidebar }) => {
   const sidebarRef = useRef<HTMLDivElement>(null);
+  const rightSidebarRef = useRef<HTMLDivElement>(null);
   const layoutRef = useRef<HTMLDivElement>(null);
   const [sidebarStyle, setSidebarStyle] = useState<React.CSSProperties>({});
+  const [rightSidebarStyle, setRightSidebarStyle] = useState<React.CSSProperties>({});
 
   useEffect(() => {
     const handleScroll = () => {
       if (!sidebarRef.current || !layoutRef.current) return;
       const sidebar = sidebarRef.current;
+      const rightSidebar = rightSidebarRef.current;
       const layout = layoutRef.current;
       const layoutRect = layout.getBoundingClientRect();
       const sidebarRect = sidebar.getBoundingClientRect();
@@ -31,8 +35,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, leftSidebar }) => {
       // Calculate bottom of layout relative to viewport
       const layoutBottom = layoutRect.bottom;
 
-
-      // If sidebar bottom would go past layout bottom, set position absolute at bottom
+      // Handle left sidebar
       if (sidebarRect.bottom > layoutBottom) {
         setSidebarStyle({
           position: 'absolute',
@@ -47,6 +50,25 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, leftSidebar }) => {
           width: 350,
         });
       }
+
+      // Handle right sidebar
+      if (rightSidebar) {
+        const rightSidebarRect = rightSidebar.getBoundingClientRect();
+        if (rightSidebarRect.bottom > layoutBottom) {
+          setRightSidebarStyle({
+            position: 'absolute',
+            bottom: 0,
+            top: 'auto',
+            width: 350,
+          });
+        } else {
+          setRightSidebarStyle({
+            position: 'sticky',
+            top: 0,
+            width: 350,
+          });
+        }
+      }
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -60,11 +82,18 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, leftSidebar }) => {
   }, []);
 
   return (
-    <Box ref={layoutRef} sx={{ display: 'flex', width: 1, minHeight: '100vh', bgcolor: '#1C2A25', position: 'relative' }}>
+    <Box 
+      ref={layoutRef} 
+      data-testid="main-layout-container"
+      className="main-layout-container"
+      sx={{ display: 'flex', width: 1, minHeight: '100vh', bgcolor: '#1C2A25', position: 'relative' }}
+    >
       {/* Left Sidebar */}
       {leftSidebar && (
         <Box
           ref={sidebarRef}
+          data-testid="left-sidebar"
+          className="left-sidebar"
           sx={{
             bgcolor: '#2E3A35',
             borderRight: '1px solid #222',
@@ -81,9 +110,34 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, leftSidebar }) => {
         </Box>
       )}
       {/* Main Content */}
-      <Box sx={{ flex: 1, p: 2, overflow: 'auto', width: 1}}>
+      <Box 
+        data-testid="main-content-area"
+        className="main-content-area"
+        sx={{ flex: 1, p: 0, overflow: 'auto', width: 1}}
+      >
         {children}
       </Box>
+      {/* Right Sidebar */}
+      {rightSidebar && (
+        <Box
+          ref={rightSidebarRef}
+          data-testid="right-sidebar"
+          className="right-sidebar"
+          sx={{
+            bgcolor: '#2E3A35',
+            borderLeft: '1px solid #222',
+            boxShadow: '-2px 0 8px 0 rgba(0,0,0,0.08)',
+            display: 'flex',
+            flexDirection: 'column',
+            height: 'auto',
+            zIndex: 100,
+            overflowY: 'auto',
+            ...rightSidebarStyle,
+          }}
+        >
+          {rightSidebar}
+        </Box>
+      )}
     </Box>
   );
 };
@@ -279,32 +333,76 @@ const LeftSidebar: React.FC = () => {
 
   // You can expand this with league info, chat, etc.
   return (
-    <Box sx={{ p: 3, color: 'text.primary', flex: 1, display: 'flex', flexDirection: 'column' }}>
-      <Button component={Link} to="/"><Typography variant="h5" color="primary.main" fontSize={48} fontWeight={1000} mb={2}>Game Logix</Typography></Button> 
-      <Box display="flex" flexDirection="column" gap={2} mb={4}>
+    <Box 
+      data-testid="left-sidebar-content"
+      className="left-sidebar-content"
+      sx={{ p: 3, color: 'text.primary', flex: 1, display: 'flex', flexDirection: 'column' }}
+    >
+      <Button component={Link} to="/">
+        <Typography 
+          variant="h5" 
+          color="primary.main" 
+          fontSize={48} 
+          fontWeight={1000} 
+          mb={2}
+          data-testid="app-logo"
+          className="app-logo"
+        >
+          Game Logix
+        </Typography>
+      </Button> 
+      <Box 
+        data-testid="sidebar-actions"
+        className="sidebar-actions"
+        display="flex" 
+        flexDirection="column" 
+        gap={2} 
+        mb={4}
+      >
         <Badge
           color="primary"
           badgeContent={unreadMessages}
           onClick={() => navigate('/inbox')}
+          data-testid="inbox-badge"
+          className="inbox-badge"
         >
           <MailIcon color="secondary" />
         </Badge>
       </Box>
       <Divider color="text.secondary" variant="middle" />
-      <Box display="flex" justifyContent="space-between" alignItems="center" my={1}>
+      <Box 
+        data-testid="leagues-section"
+        className="leagues-section"
+        display="flex" 
+        justifyContent="space-between" 
+        alignItems="center" 
+        my={1}
+      >
         <Typography variant="h6" fontWeight={700} color="text.primary">
           Leagues
         </Typography>
         <Badge
           color="primary"
           onClick={() => navigate('/leagues/new')}
+          data-testid="add-league-button"
+          className="add-league-button"
         >
           <AddCircleIcon color="secondary" />
         </Badge>
       </Box>
-        <Box mb={5}>
+        <Box 
+          data-testid="leagues-list"
+          className="leagues-list"
+          mb={5}
+        >
           {userLeagues.length === 0 ? (
-            <Box display="flex" flexDirection="column" gap={1}>
+            <Box 
+              data-testid="empty-leagues-state"
+              className="empty-leagues-state"
+              display="flex" 
+              flexDirection="column" 
+              gap={1}
+            >
               <Button
                 variant="outlined"
                 color="primary"
@@ -417,8 +515,11 @@ const LeftSidebar: React.FC = () => {
 function DashboardWrapper({ children }: { children: React.ReactNode }) {
   return (
     <Box
+      data-testid="trying my best"
+      className="trying my best"
       sx={{
-        maxWidth: 1100,
+
+        maxWidth: 1500,
         mx: 'auto',
         my: 4,
         p: { xs: 2, md: 4 },
@@ -476,16 +577,16 @@ function AppContent() {
         <Route path="/" element={<BusinessHome />} />
         <Route path="/businessHome" element={<BusinessHome />} />
         
-        {/* App pages with sidebar */}
+        {/* App pages with left sidebar only */}
         <Route path="/*" element={
           <MainLayout leftSidebar={<LeftSidebar />}>
-            <Container sx={{ mt: 4, mb: 4, maxWidth: 'lg' }}>
+            <Box sx={{ mt: 4, mb: 4, px: 2, width: '100%' }}>
               <Routes>
                 {globalRoutes(user)}
                 {LeagueRoutes()}
                 <Route path="*" element={<NotFound />} />
               </Routes>
-            </Container>
+            </Box>
           </MainLayout>
         } />
       </Routes>
