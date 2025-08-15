@@ -70,7 +70,7 @@ const [roundPlayerStats, setRoundPlayerStats] = useState<{
   const addRound = () => {
     if (rounds.length < (selectedSport.maxRounds || 3)) {
       const newId = uuidv4();
-      setRounds(prev => [...prev, { id: newId, idx: prev.length, label: `Round ${prev.length + 1}` }]);
+      setRounds(prev => [...prev, { id: newId, idx: prev.length, label: `${selectedSport?.roundsName} ${prev.length + 1}` }]);
       setTeamScores(prev => ({
         ...prev,
         [newId]: { team1: 0, team2: 0 }

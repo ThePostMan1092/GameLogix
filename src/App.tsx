@@ -1,11 +1,10 @@
 import React, { Suspense, useEffect, useState, useRef} from 'react';
 import { AuthProvider, useAuth } from './Backend/AuthProvider';
 import { Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom';
-import { Divider, Badge, Typography, Button, Container, Box, CssBaseline, ThemeProvider, createTheme, CircularProgress } from '@mui/material';
+import { Divider, Badge, Typography, Button, Container, Box, CssBaseline, ThemeProvider, createTheme, CircularProgress, Avatar } from '@mui/material';
 import Grid from '@mui/material/Grid';
 import MailIcon from '@mui/icons-material/Mail';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
-import AccountCircleRoundedIcon from '@mui/icons-material/AccountCircleRounded';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from './Backend/firebase';
 
@@ -202,6 +201,7 @@ const theme = createTheme({
 const Login = React.lazy(() => import('./users/Login'));
 const Register = React.lazy(() => import('./users/Register'));
 const Dashboard = React.lazy(() => import('./playerProfile/Dashboard'));
+const UserSettings = React.lazy(() => import('./playerProfile/userSettings'));
 const RecordGame = React.lazy(() => import('./matches/RecordGame'));
 const Scoreboard = React.lazy(() => import('./matches/Scoreboard'));
 const ScheduleGame = React.lazy(() => import('./matches/ScheduleGame'));
@@ -387,7 +387,15 @@ const LeftSidebar: React.FC = () => {
       {user ? (
         <Box justifyContent="space-between" alignItems="left" my={1}>
           <Button fullWidth sx={{ display: 'flex' }} onClick={() => navigate('/dashboard')}>
-            <AccountCircleRoundedIcon fontSize="large" color="secondary" />
+              <Avatar src={user?.photoURL || undefined}
+                sx={{ 
+                width: 50, 
+                height: 50, 
+                border: '2px solid rgba(255,255,255,0.3)',
+              }}
+              >
+              {user?.displayName?.[0] || user?.email?.[0] || 'P'}
+              </Avatar>
               <Box pl={2} justifyContent="left">
                 <Typography variant="h5" fontWeight={500} color="text.primary">
                   {user ? user.displayName || user.email : 'Guest'}
@@ -431,6 +439,7 @@ import type { User } from 'firebase/auth';
 
 const globalRoutes = (user: User | null) => [
   <Route path="/dashboard" element={<ProtectedRoute><DashboardWrapper><Dashboard /></DashboardWrapper></ProtectedRoute>} />,
+  <Route path="/playerProfile/:userId/userSettings" element={<ProtectedRoute><UserSettings /></ProtectedRoute>} />,
   <Route path="/appHome" element={<ProtectedRoute><AppHome /></ProtectedRoute>} />,
   <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <Login />} />,
   <Route path="/register" element={user ? <Navigate to="/dashboard" replace /> : <Register />} />,

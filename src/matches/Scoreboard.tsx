@@ -64,13 +64,22 @@ const Scoreboard: React.FC = () => {
         setSelectedSport(sportsData[0]);
       }
 
-      // Fetch matches for this league
-      const matchesRef = collection(db, 'matches');
-      const matchesSnap = await getDocs(matchesRef);
-      const matchesData: Match[] = matchesSnap.docs
-        .map(doc => ({ id: doc.id, ...doc.data() } as Match))
-        .filter(match => match.leagueId === leagueId);
-      setMatches(matchesData);
+      // Fetch matches from the correct nested collection path
+      // Matches are stored at: leagues/{leagueId}/sports/{sportId}/matches
+      const allMatches: Match[] = [];
+      for (const sport of sportsData) {
+        const matchesRef = collection(db, 'leagues', leagueId, 'sports', sport.id, 'matches');
+        const matchesSnap = await getDocs(matchesRef);
+        const sportMatches: Match[] = matchesSnap.docs.map(doc => ({ 
+          id: doc.id, 
+          ...doc.data(),
+          sportId: sport.id // Ensure sportId is set
+        } as Match));
+        console.log(`Fetched ${sportMatches.length} matches for sport ${sport.name} (ID: ${sport.id})`);
+        allMatches.push(...sportMatches);
+      }
+      console.log(`Total matches fetched: ${allMatches.length}`);
+      setMatches(allMatches);
       
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -112,8 +121,21 @@ const Scoreboard: React.FC = () => {
     }
   }, [league]);
 
+  // Refetch data when sport selection changes
+  useEffect(() => {
+    if (selectedSport && leagueId) {
+      console.log('Selected sport changed, refetching data for:', selectedSport.name);
+      fetchData();
+    }
+  }, [selectedSport?.id]);
+
   // Calculate comprehensive stats for each player
   const calculatePlayerStats = (): PlayerStatsRow[] => {
+    console.log('=== CALCULATING PLAYER STATS ===');
+    console.log('Selected sport:', selectedSport?.name);
+    console.log('Total matches available:', matches.length);
+    console.log('Players:', players.length);
+
     return players.map((player) => {
       // Filter matches for current sport and player
       const playerMatches = matches.filter(match => 
@@ -121,6 +143,19 @@ const Scoreboard: React.FC = () => {
         match.sportId === selectedSport.id &&
         match.gameStats?.teams?.some(team => team.playerIds.includes(player.uid))
       );
+
+      console.log(`Player ${player.displayName || player.email} has ${playerMatches.length} matches for sport ${selectedSport?.name}`);
+      if (playerMatches.length > 0) {
+        console.log('Sample match for player:', {
+          matchId: playerMatches[0].id,
+          sportId: playerMatches[0].sportId,
+          teams: playerMatches[0].gameStats?.teams?.map(t => ({
+            teamId: t.teamId,
+            playerIds: t.playerIds,
+            totalScore: t.totalScore
+          }))
+        });
+      }
 
       let wins = 0, losses = 0, ties = 0;
       let pointsFor = 0, pointsAgainst = 0;

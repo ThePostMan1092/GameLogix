@@ -5,7 +5,7 @@ export interface Match {
   leagueId: string; // Optional, if matches can belong to leagues
   sportId: string;
   createdAt: Timestamp;
-  status: 'completed' | 'upcoming' | 'active' | 'cancelled';
+  status: 'completed' | 'upcoming' | 'active' | 'cancelled' | 'review';
   gameEvent: 'simpleMatch' | 'tournament';
   gameStats: GameStats; // For complex games with rounds/stats
 }

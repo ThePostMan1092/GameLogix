@@ -1,5 +1,5 @@
 import { doc, getDoc, runTransaction, collection, getDocs } from 'firebase/firestore';
-import { db } from '../Backend/firebase';
+import { db } from '../../Backend/firebase';
 import type { 
   SportParentStats, 
   aggregateStats, 
@@ -7,10 +7,10 @@ import type {
   PerLeagueStat,
   StatUpdateContext,
   MatchResult
-} from '../types/stats';
-import { StatsDocumentHelper } from '../types/stats';
+} from '../../types/stats';
+import { StatsDocumentHelper } from '../../types/stats';
 import { SportInfoService } from './sportInfoService';
-import type { Match } from '../types/matches';
+import type { Match } from '../../types/matches';
 
 export class StatsService {
   /**

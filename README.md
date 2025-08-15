@@ -3,8 +3,12 @@
 A modern React + TypeScript web application for tracking corporate office sports games (ping pong, foosball, pool, and more). Built with Vite, MUI (Material-UI), and React Router.
 
 ## View ERD
-
+Majority of the structure:
 https://lucid.app/lucidchart/a47e0193-2269-4b9b-a863-4a747c583431/edit?viewport_loc=-2033%2C-1179%2C5709%2C2770%2C0_0&invitationId=inv_90428aca-b860-4d5a-9b3b-fc671a451972
+
+Match Data ERD:
+https://lucid.app/lucidchart/3f660157-858b-473e-a0c1-62468744e21b/edit?viewport_loc=333%2C-946%2C1705%2C789%2C0_0&invitationId=inv_753e35df-b091-4451-9224-4e8a2b32e689
+
 
 ## Features
 - Player profiles

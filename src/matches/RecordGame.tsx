@@ -8,6 +8,7 @@ import { InternalBox } from '../Backend/InternalBox';
 import { useParams } from 'react-router-dom';
 import { type Sport } from '../types/sports.ts';
 import SmallTeam from './PlayerSelectionBlocks/smallTeam.tsx';
+import Duel from './PlayerSelectionBlocks/duel.tsx';
 import RoundBased from './RecordScoreBlocks/roundBased.tsx';
 import IndividualComp from './PlayerSelectionBlocks/individualComp.tsx';
 import IndividualPoints from './RecordScoreBlocks/individualPoints.tsx';
@@ -125,7 +126,11 @@ const RecordGame: React.FC = () => {
           <Select 
             value={selectedSport?.name || ''} 
             label="Sport" 
-            onChange={e => setSelectedSport(sports.find(s => s.name === e.target.value) || null)}
+            onChange={e => {
+              const sport = sports.find(s => s.name === e.target.value) || null;
+              setSelectedSport(sport);
+              logValue(sport);
+            }}
             fullWidth>
             {sports.map(s => <MenuItem key={s.id} value={s.name}>{s.name}</MenuItem>)}
           </Select>
@@ -148,9 +153,24 @@ const RecordGame: React.FC = () => {
           />
         
         )}
+        {selectedSport?.sportParent.playerFormat === 'duel' && (
+          <Duel
+            leagueMembers={[ // <-- include the user!
+              {
+                id: user?.uid,
+                displayName: user?.displayName || user?.email || 'You',
+                email: user?.email,
+              },
+              ...opponents
+            ]}
+            onSelectionChange={players => {
+              setPlayers(players);
+            }}
+          />
+        )}
 
         {selectedSport?.sportParent.playerFormat === 'smallTeam' &&  (
-          logValue(selectedSport),
+
           <SmallTeam
             selectedSport={selectedSport}
             leagueMembers={[ // <-- include the user!

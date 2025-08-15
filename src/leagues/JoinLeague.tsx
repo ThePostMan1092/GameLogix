@@ -7,6 +7,7 @@ import { type LeagueSettings } from '../types/league';
 import { useAuth } from '../Backend/AuthProvider';
 
 import { sendMessage, addUserToLeagueConversations} from '../messaging';
+import { useNavigate } from 'react-router-dom';
 
 const JoinLeague: React.FC = () => {
   const [leagues, setLeagues] = useState<LeagueSettings[]>([]);
@@ -17,6 +18,7 @@ const JoinLeague: React.FC = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const { user } = useAuth();
+  const navigate = useNavigate();
   
   
 
@@ -96,6 +98,10 @@ const JoinLeague: React.FC = () => {
         });
         setSuccess(true);
         setError('');
+        // Delay navigation slightly to allow UI updates (optional)
+        setTimeout(() => {
+          navigate(`/leagues/${league.id}/Scoreboard`);
+        }, 100);
       } else if (league.joinType === 'approval') {
         // For approval leagues, send request to admin
         if (!league.inboxConvoId) {

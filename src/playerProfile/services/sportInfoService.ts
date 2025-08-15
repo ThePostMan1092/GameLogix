@@ -1,6 +1,6 @@
 import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../Backend/firebase';
-import type { Sport } from '../types/sports';
+import { db } from '../../Backend/firebase';
+import type { Sport } from '../../types/sports';
 
 export class SportInfoService {
   /**

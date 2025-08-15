@@ -10,7 +10,7 @@ interface Player {
   id: string;
   displayName: string;
   email?: string;
-
+  photoURL?: string;
 }
 
 // Available sports for company leagues
@@ -19,6 +19,7 @@ interface teamPostitioning {
   teamPosition: number;
   playerId: string;
   displayName: string;
+  photoURL?: string;
 }
 
 interface SmallTeamProps {
@@ -58,7 +59,8 @@ const SmallTeam: React.FC<SmallTeamProps> = ({leagueMembers, selectedSport, onSe
     }
   }, [players, onSelectionChange]);
   
-  const selectedPlayerIds = players.map(p => p.playerId);
+  // Get profiles for all players except the current user
+  const selectedPlayerIds = players.map(p => p.playerId).filter(id => id !== user?.uid);
 
   const handleSelectPlayer = (playerId: string, teamId: number, position: number) => {
     setPlayers(prevPlayers => {

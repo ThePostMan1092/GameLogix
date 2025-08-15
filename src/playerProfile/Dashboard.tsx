@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Button, Typography, LinearProgress } from '@mui/material';
+import { Box, Button, Typography, LinearProgress, Stack, IconButton } from '@mui/material';
 import { useAuth } from '../Backend/AuthProvider';
 import { useNavigate } from 'react-router-dom';
 import { usePlayerStats } from '../hooks/usePlayerStats';
 import { PlayerProfileHero } from './PlayerProfileHero';
 import { PlayerStatsDeepDive } from './PlayerStatsDeepDive';
 import type { SportParentStats } from '../types/stats';
+import SettingsApplicationsIcon from '@mui/icons-material/SettingsApplications';
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
@@ -57,9 +58,22 @@ const Dashboard: React.FC = () => {
     <Box sx={{ maxWidth: 1200, mx: 'auto', p: 3 }}>
       {/* Header with Sign Out */}
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
-        <Typography variant="h3" fontWeight="bold" color="primary">
-          Player Dashboard
-        </Typography>
+        <Stack direction="row" spacing={0}>
+          <IconButton 
+          onClick={() => navigate(`/playerProfile/${user?.uid}/userSettings`)}
+          color="primary" size="large">
+            <SettingsApplicationsIcon />
+          </IconButton>
+          <Box>
+            <Typography variant="h6" fontWeight="bold" color="text.secondary">
+              Welcome, {user?.displayName || 'Player'}
+            </Typography>
+            <Typography variant="h3" fontWeight="bold" color="primary">
+            Player Dashboard
+            </Typography>
+          </Box>
+        </Stack>
+
         <Button 
           variant="outlined" 
           onClick={handleSignOut}

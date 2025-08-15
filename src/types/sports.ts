@@ -6,14 +6,7 @@ export interface SportParent {
   'accuracyScore' | 'distanceLongest' | 'distanceShortest' | 'elimination' | 'simpleScore';
 }
 
-export const scoringTypes = [
-  {type: 'solo competition round based', sports: ['Bowling', 'Golf', 'poker' ]},
-  {type: 'small team round based', sports: ['Ping Pong', 'Pickleball', 'tennis', 'badminton', 'volleyball']},
-  {type: 'team splitup game', sports: ['Basketball', 'Soccer', 'Rugby', 'Football', 'Hockey']},
-  {type: 'small size turn based', sports: ['spades', 'chess', 'horseshoes', ]},
-  {type: 'team splitup round based', sports: ['darts', 'cornhole', 'pool', 'bowling']},
-  {type: 'solo', sports: ['running', 'swimming', 'cycling', 'triathlon', 'speedcubing', 'speedruns']},
-]
+
 
 export interface CustomStat {
   name: string;
@@ -37,8 +30,8 @@ export interface Sport {
   sportParent: SportParent; // restrict to allowed categories
   name: string;
   description?: string;
-  gameType: 'solo' | 'competition';
-  teamFormat: 'individuals' | 'teams';
+  gameType?: 'solo' | 'competition';
+  teamFormat?: 'individuals' | 'teams';
   playerLayout?: 'smallTeam' | 'largeTeam' | 'solo' | 'manyIndividuals';
   recordLayout?: 'table' | 'cards';
   numberOfTeams?: number;
@@ -48,7 +41,7 @@ export interface Sport {
   roundsName?: string;
   maxRounds?: number;
   trackPerRound?: boolean;
-  winCondition: 'First to point limit' | 'First to round limit' | 'Most points';
+  winCondition?: 'First to point limit' | 'First to round limit' | 'Most points';
   winPoints?: number;
   winRounds?: number;
   cannotTie: boolean;
@@ -242,50 +235,6 @@ const bowlingSolo: Sport = {
   sportParent: {name: 'Bowling', playerFormat: 'freeForAllSmall', scoringFormat: 'totalManyRounds'}
 }
 
-const pickleballDoubles: Sport = {
-  id: 'uuid-or-sport-name',
-  name: 'Pickleball Doubles',
-  gameType: 'competition',
-  teamFormat: 'teams',
-  playerLayout: 'smallTeam',
-  recordLayout: 'cards',
-  useRounds: true,
-  roundsName: 'Sets',
-  maxRounds: 3,
-  winCondition: 'First to round limit',
-  cannotTie: false,
-  winBy: 2,
-  playStyle: 'turn-based',
-  trackByPlayer: false,
-  activeTrack: false,
-  customStats: [
-    {
-      name: 'Score',
-      dataType: 'number',
-      description: '',
-      minValue: 0,
-      maxValue: 21,
-      defaultValue: 0,
-      decimalPlaces: 0,
-      affectsScore: true
-    },
-    {
-      name: 'Aces',
-      dataType: 'counter',
-      description: 'Number of aces served',
-      defaultValue: 0,
-      decimalPlaces: 0,
-      affectsScore: false
-    }
-  ],
-  customSpecialRules: [
-  ],
-  createdAt: new Date(),
-  createdBy: 'user123',
-  adjustable: true,
-  sportParent: {name: 'Pickleball', playerFormat: 'freeForAllSmall', scoringFormat: 'totalManyRounds'}
-}
-
 const tenGame: Sport = {
   id: 'ten-game-uuid',
   name: 'Ten',
@@ -351,8 +300,84 @@ const tenGame: Sport = {
   sportParent: {name: 'Ten', playerFormat: 'freeForAllSmall', scoringFormat: 'simpleScore'}
 }
 
+const pickleballDoubles: Sport = {
+  id: 'pickleball-uuid',
+  sportParent: {name: 'Pickleball', playerFormat: 'smallTeam', scoringFormat: 'roundWins'},
+  name: 'Pickleball Doubles',
+  description: 'Classic 3 game match of doubles pickleball. Each set to 11 with win by 2',
+  gameType: 'competition',
+  useRounds: true,
+  roundsName: 'Games',
+  maxRounds: 3,
+  cannotTie: true,
+  winBy: 2,
+  trackByPlayer: true,
+  activeTrack: false,
+  customStats: [
+    {
+      name: 'Points',
+      dataType: 'number',
+      description: '',
+      defaultValue: 0,
+      decimalPlaces: 0,
+      affectsScore: true
+    },
+    {
+      name: 'Servers',
+      dataType: 'counter',
+      description: 'Number of serves made',
+      defaultValue: 0,
+      decimalPlaces: 0,
+      affectsScore: false
+    }
+  ],
+  customSpecialRules: [
+  ],
+  createdAt: new Date(),
+  createdBy: 'user123',
+  adjustable: true,
+}
 
+const pickleballSingles: Sport = {
+  id: 'pickleball-uuid',
+  sportParent: {name: 'Pickleball', playerFormat: 'duel', scoringFormat: 'roundWins'},
+  name: 'Pickleball Singles',
+  description: 'Classic 3 game match of singles pickleball. Each set to 11 with win by 2',
+  gameType: 'competition',
+  useRounds: true,
+  roundsName: 'Games',
+  maxRounds: 3,
+  cannotTie: true,
+  winBy: 2,
+  winRounds: 2,
+  winPoints: 11,
+  trackByPlayer: true,
+  activeTrack: false,
+  customStats: [
+    {
+      name: 'Points',
+      dataType: 'number',
+      description: '',
+      defaultValue: 0,
+      decimalPlaces: 0,
+      affectsScore: true
+    },
+    {
+      name: 'Servers',
+      dataType: 'counter',
+      description: 'Number of serves made',
+      defaultValue: 0,
+      decimalPlaces: 0,
+      affectsScore: false
+    }
+  ],
+  customSpecialRules: [
+  ],
+  createdAt: new Date(),
+  createdBy: 'user123',
+  adjustable: true,
+}
 
-const sports: Sport[] = [basketballFullTeam, pingPongDoubles, bowlingSolo, pickleballDoubles, tenGame];
+const sports: Sport[] = [basketballFullTeam, pingPongDoubles, bowlingSolo, pickleballDoubles, tenGame, pickleballSingles];
 
 export default sports;

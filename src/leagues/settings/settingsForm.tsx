@@ -1,12 +1,11 @@
 import { useState, useEffect} from 'react';
 import {
   Dialog, DialogTitle, DialogContent, DialogActions, MenuItem, Select, Switch, Box, Typography, Grid,
-  ToggleButton, ToggleButtonGroup, Accordion, AccordionSummary, AccordionDetails, Checkbox, Paper
+  ToggleButton, ToggleButtonGroup, Accordion, AccordionSummary, AccordionDetails, Checkbox, Paper, Stack,
+  Slider
 } from '@mui/material';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
-import Radio from '@mui/material/Radio';
-import RadioGroup from '@mui/material/RadioGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import FormLabel from '@mui/material/FormLabel';
 import FormControl from '@mui/material/FormControl';
@@ -54,6 +53,7 @@ export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded
     higherIsBetter: boolean;
     order: number;
   }[]>([]);
+  const checkRounds = ['roundWins', 'totalFewRounds', 'totalManyRounds', 'timeAverage', 'elimination'];
 
   const calculateTiebreakerValues = (tiebreakers: { statName: string; higherIsBetter: boolean; order: number }[]) => {
     return tiebreakers.map(tb => ({
@@ -87,6 +87,11 @@ export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded
       customStats: savedSport.customStats ? savedSport.customStats : [],
       customSpecialRules: savedSport.customSpecialRules ? savedSport.customSpecialRules : [],
       adjustable: savedSport.adjustable ?? true,
+      parentSport: {
+        name: savedSport.sportParent?.name || '',
+        playerFormat: savedSport.sportParent?.playerFormat || '',
+        scoringFormat: savedSport.sportParent?.scoringFormat || '',
+      }
       // Add any other fields you need to support editing
     });
     // Set tiebreaker stats and convert to order format
@@ -110,7 +115,13 @@ export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded
       openSavedSport(editingSport);
     } else if (open && !editingSport) {
       // Reset form for new sport
-      setFormData({});
+      setFormData({
+        sportParent: {
+          name: '',
+          playerFormat: '',
+          scoringFormat: ''
+        }
+      });
       setSport(null);
       setTiebreakerStats([]);
       setTiebreakerOrder([]);
@@ -122,10 +133,23 @@ export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded
     if (field === 'tiebreakerStats') {
       setTiebreakerStats(value);
     }
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    // Handle nested updates for sportParent
+    if (field.startsWith('sportParent.')) {
+      const key = field.split('.')[1];
+      setFormData(prev => ({
+        ...prev,
+        sportParent: {
+          ...(prev as any).sportParent,
+          [key]: value
+        }
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [field]: value
+      }));
+    }
+    console.log("formdata after change:", formData);
   };
 
   const handleSportSelection = (event: any) => {
@@ -138,7 +162,11 @@ export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded
       setTiebreakerOrder([]);
       setFormData({
         name: 'Custom Sport',
-        sportParent: 'Custom',
+        sportParent: {
+          name: 'Custom',
+          playerFormat: '',
+          scoringFormat: ''
+        },
         adjustable: true,
       });
     } else {
@@ -162,7 +190,6 @@ export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded
         // Pre-populate form data with the sport's preset configuration
         setFormData({
             name: predefinedSport.name || '',
-            sportParent: predefinedSport.sportParent || '',
             description: predefinedSport.description || '',
             gameType: predefinedSport.gameType || '',
             teamFormat: predefinedSport.teamFormat || '',
@@ -182,6 +209,11 @@ export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded
             customStats: predefinedSport.customStats ? predefinedSport.customStats : [],
             customSpecialRules: predefinedSport.customSpecialRules ? predefinedSport.customSpecialRules: [],
             adjustable: predefinedSport.adjustable ?? true,
+            parentSport: {
+              name: predefinedSport.sportParent?.name || '',
+              playerFormat: predefinedSport.sportParent?.playerFormat || '',
+              scoringFormat: predefinedSport.sportParent?.scoringFormat || '',
+            }
         });
       }
     }
@@ -264,7 +296,6 @@ export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded
       // Create the sport object to save - filter out undefined values
       const sportData: any = {
         name:  (formData as any).name || sport?.name || 'Custom Sport',
-        sportParent: (formData as any).sportParent || 'Custom',
         description: (formData as any).description || '',
         gameType: (formData as any).gameType || 'competition',
         teamFormat: (formData as any).teamFormat || 'teams',
@@ -284,6 +315,11 @@ export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded
         createdBy: user.uid,
         adjustable: (formData as any).adjustable === true,
         tiebreakerStats,
+        sportParent: {
+          name: (formData as any).sportParent?.name || '',
+          playerFormat: (formData as any).sportParent?.playerFormat || '',
+          scoringFormat: (formData as any).sportParent?.scoringFormat || '',
+        }
       };
 
       // Only add optional fields if they have valid values
@@ -389,51 +425,126 @@ export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded
         return (
           <>
             <FormControl fullWidth margin="normal">
-              <FormLabel>Is this a solo game or a competition?</FormLabel>
-              <RadioGroup 
-                value={(formData as any).gameType || ''}
-                onChange={e => handleChange('gameType', e.target.value)}
-              >
-                <FormControlLabel value="solo" control={<Radio />} label="Solo" />
-                <FormControlLabel value="competition" control={<Radio />} label="Competition" />
-              </RadioGroup>
+              <FormLabel>Select Your Player/Team Layout</FormLabel>
+              <Stack direction="row" spacing={2}>
+                <Select
+                  value={(formData as any).sportParent?.playerFormat || ''}
+                  onChange={e => handleChange('sportParent.playerFormat', e.target.value)}
+                >
+                  <MenuItem value="solo">Solo</MenuItem>
+                  <MenuItem value="duel">Duel (1v1)</MenuItem>
+                  <MenuItem value="smallTeam">Small Team (2-5 Players)</MenuItem>
+                  <MenuItem value="mediumTeam">Medium Team (6-11 Players)</MenuItem>
+                  <MenuItem value="largeTeam">Large Team (12+ Players)</MenuItem>
+                  <MenuItem value="freeForAllSmall">Free For All (3-6 Players)</MenuItem>
+                  <MenuItem value="freeForAllLarge">Free For All (7+ Players)</MenuItem>
+                  <MenuItem value="relayTeam">Relay Team</MenuItem>
+                  <MenuItem value="multiPair">Multiple Pairs</MenuItem>
+                  <MenuItem value="groupIndividual">Group Individual</MenuItem>
+                </Select>
+                <Typography variant="body2" color="textSecondary">
+                  Once all are made include images of what UI looks like
+                </Typography>
+              </Stack>
             </FormControl>
+            <FormControl fullWidth margin="normal">
+              <FormLabel>Select Your Scoring/Recording Structure</FormLabel>
+              <Stack direction="row" spacing={2}>
+                <Select
+                  value={(formData as any).sportParent?.scoringFormat || ''}
+                  onChange={e => handleChange('sportParent.scoringFormat', e.target.value)}
+                >
+                  <MenuItem value="totalFewRounds">Total Score (Few Rounds)</MenuItem>
+                  <MenuItem value="totalManyRounds">Total Score (Many Rounds)</MenuItem>
+                  <MenuItem value="roundWins">Round Wins</MenuItem>
+                  <MenuItem value="timeBest">Time (Best)</MenuItem>
+                  <MenuItem value="timeLongest">Time (Longest)</MenuItem>
+                  <MenuItem value="timeAverage">Time (Average)</MenuItem>
+                  <MenuItem value="accuracyScore">Accuracy Score</MenuItem>
+                  <MenuItem value="distanceLongest">Distance (Longest)</MenuItem>
+                  <MenuItem value="distanceShortest">Distance (Shortest)</MenuItem>
+                  <MenuItem value="elimination">Elimination</MenuItem>
+                  <MenuItem value="simpleScore">Simple Score</MenuItem>
+                </Select>
+                <Typography variant="body2" color="textSecondary">
+                  Once all are made include images of what UI looks like
+                </Typography>
+              </Stack>
+            </FormControl>
+              {checkRounds.includes((formData as any).sportParent?.scoringFormat) && (
+              <Grid container gap={1} mt={1} px={3}>
+                <Grid size={4}>
+                  <Typography variant="h4" color="textSecondary" sx={{ mt: 1 }}>
+                    Round Selection:
+                  </Typography>
+                </Grid>
+                <Grid size={7}>
+                  <TextField
+                    fullWidth
+                    size="small"
+                    label="Name (e.g. Set, Match)"
+                    type="text"
+                    value={(formData as any).roundsName || ''}
+                    onChange={e => handleChange('roundsName', e.target.value)}
+                  />
+                </Grid>
+                <Grid size={12}>
+                  <Slider
+                    value={(formData as any).maxRounds || 2}
+                    step={1}
+                    marks
+                    min={0}
+                    max={20}
+                    valueLabelDisplay="auto"
+                    onChange={(_, value) => handleChange('maxRounds', value)}
+                  />
+                </Grid>
+              </Grid>
+              )}
+              {!checkRounds.includes((formData as any).sportParent?.scoringFormat) && ( 
+                 <Grid container gap={1} mt={1} px={3}>
+                  <Grid size={4}>
+                    <Stack direction="row">
+                      <Checkbox
+                        checked={(formData as any).useRounds || false}
+                        onChange={e => handleChange('useRounds', e.target.checked)}
+                        size="small"
+                      />
+                    <Typography variant="h4" color="textSecondary" sx={{ mt: 1 }}>
+                      Round Selection:
+                    </Typography>
+                    </Stack>
+
+                  </Grid>
+                  {(formData as any).useRounds && (
+                    <>
+                      <Grid size={5}>
+                        <TextField
+                          fullWidth
+                          size="small"
+                          label="Name (e.g. Set, Match)"
+                          type="text"
+                          value={(formData as any).roundsName || ''}
+                          onChange={e => handleChange('roundsName', e.target.value)}
+                        />
+                      </Grid>
+                      <Grid size={12}>
+                        <Slider
+                          value={(formData as any).maxRounds || 2}
+                          step={1}
+                          marks
+                          min={0}
+                          max={20}
+                          valueLabelDisplay="auto"
+                          onChange={(_, value) => handleChange('maxRounds', value)}
+                        />
+                      </Grid>
+                    </>
+                  )}
+                </Grid>
+              )}
             
-            {(formData as any).gameType === 'competition' && (
-              <div>
-                <FormControl fullWidth margin="normal">
-                  <FormLabel>Are players on teams or individuals?</FormLabel>
-                  <RadioGroup 
-                    value={(formData as any).teamFormat || ''}
-                    onChange={e => handleChange('teamFormat', e.target.value)}
-                  >
-                    <FormControlLabel value="individuals" control={<Radio />} label="Individuals" />
-                    <FormControlLabel value="teams" control={<Radio />} label="Teams" />
-                  </RadioGroup>
-                </FormControl>
-                <TextField
-                      fullWidth
-                      type="number"
-                      label={`How many ${sport?.teamFormat || 'bobo'}?`}
-                      value={(formData as any).numberOfTeams || ''}
-                      onChange={e => handleChange('numberOfTeams', e.target.value)}
-                      margin="normal"
-                    />
-                
-                {(formData as any).teamFormat === 'teams' && (
-                  <div>
-                    <TextField
-                      fullWidth
-                      type="number"
-                      label="How many players per team?"
-                      value={(formData as any).playersPerTeam || ''}
-                      onChange={e => handleChange('playersPerTeam', e.target.value)}
-                      margin="normal"
-                    />
-                  </div>
-                )}
-              </div>
-            )}
+        
           </>
         );
       case 2:
@@ -452,14 +563,7 @@ export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded
                 <>
                   <Grid container gap={1} mt={.5} px={3}>
                       <Grid size={6}>
-                          <TextField
-                              fullWidth
-                              size="small"
-                              label="Name (e.g. Set, Match)"
-                              type="text"
-                              value={(formData as any).roundsName || ''}
-                              onChange={e => handleChange('roundsName', e.target.value)}
-                          />
+
                       </Grid>
                       <Grid size={5.5}>
                           <TextField
@@ -1069,14 +1173,23 @@ export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded
         {renderStep()}
       </DialogContent>
       <DialogActions>
-        <Button onClick={back} disabled={step === 0}>Back</Button>
-        {step < steps.length - 1 ? (
-          <Button onClick={next}>Next</Button>
-        ) : (
-          <Button onClick={handleSubmit} disabled={loading}>
-            {loading ? 'Saving...' : 'Submit'}
-          </Button>
-        )}
+        <Stack direction="row" spacing={1} justifyContent="space-between">
+          {step !== steps.length - 1 && (
+            <Button onClick={handleSubmit} disabled={loading}>
+              {loading ? 'Saving...' : 'Submit'}
+            </Button>
+          )}
+          <Box>
+            <Button onClick={back} disabled={step === 0}>Back</Button>
+            {step < steps.length - 1 ? (
+              <Button onClick={next} disabled >Next</Button>
+            ) : (
+              <Button onClick={handleSubmit} disabled={loading}>
+                {loading ? 'Saving...' : 'Submit'}
+              </Button>
+            )}
+          </Box>
+        </Stack>
       </DialogActions>
     </Dialog>
   );

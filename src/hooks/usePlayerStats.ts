@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { StatsService } from '../services/statsService';
+import { StatsService } from '../playerProfile/services/statsService';
 import type { Match } from '../types/matches';
 import type { SportParentStats } from '../types/stats';
 

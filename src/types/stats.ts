@@ -91,6 +91,115 @@ export interface MatchResult {
     isComebackWin?: boolean;
 }
 
+export interface Badge {
+    name: string;
+    description: string;
+    imageUrl: string;
+    completion: number;
+    progress: number;
+    otherQualities?: {value: string, count: number}[];
+}
+
+export const generalBadges: Badge[] = [
+  {
+    name: "First Taste of Victory",
+    description: "Win your first game.",
+    imageUrl: "/badges/first-win.png",
+    completion: 1,
+    progress: 0
+  },
+  {
+    name: "Hot Streak",
+    description: "Win 5 games in a row.",
+    imageUrl: "/badges/hot-streak.png",
+    completion: 5,
+    progress: 0
+  },
+  {
+    name: "Unstoppable",
+    description: "Win 10 games in a row.",
+    imageUrl: "/badges/unstoppable.png",
+    completion: 10,
+    progress: 0
+  },
+  {
+    name: "Marathon Winner",
+    description: "Win 50 games total.",
+    imageUrl: "/badges/marathon-winner.png",
+    completion: 50,
+    progress: 0
+  },
+  {
+    name: "Century Club",
+    description: "Win 100 games total.",
+    imageUrl: "/badges/century-club.png",
+    completion: 100,
+    progress: 0
+  },
+  {
+    name: "The Closer",
+    description: "Win with a 70%+ win rate over 20+ games.",
+    imageUrl: "/badges/the-closer.png",
+    completion: 0.7,
+    progress: 0
+  },
+  {
+    name: "Mr./Ms. Consistent",
+    description: "Maintain a 50%+ win rate over 50+ games.",
+    imageUrl: "/badges/consistent.png",
+    completion: 0.5,
+    progress: 0
+  },
+  {
+    name: "Ice Cold",
+    description: "Lose 5 games in a row.",
+    imageUrl: "/badges/ice-cold.png",
+    completion: 5,
+    progress: 0
+  },
+  {
+    name: "Rock Bottom",
+    description: "Lose 10 games in a row.",
+    imageUrl: "/badges/rock-bottom.png",
+    completion: 10,
+    progress: 0
+  },
+  {
+    name: "Revenge Arc",
+    description: "Go from a 5-game losing streak to a 5-game winning streak.",
+    imageUrl: "/badges/revenge-arc.png",
+    completion: 1,
+    progress: 0
+  },
+  {
+    name: "Comeback Kid",
+    description: "Win after being on match point or last place.",
+    imageUrl: "/badges/comeback-kid.png",
+    completion: 1,
+    progress: 0
+  },
+  {
+    name: "Weekend Warrior",
+    description: "Play 10 games in a single day.",
+    imageUrl: "/badges/weekend-warrior.png",
+    completion: 10,
+    progress: 0
+  },
+  {
+    name: "Long Haul",
+    description: "Play 100 games total.",
+    imageUrl: "/badges/long-haul.png",
+    completion: 100,
+    progress: 0
+  }
+]
+
+export interface roundWinsStats {
+    rounds: {
+        
+    }
+}
+
 // Utility functions for document naming
 export class StatsDocumentHelper {
     static sanitizeForFirestore(str: string): string {
