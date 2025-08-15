@@ -131,7 +131,7 @@ const RecordGame: React.FC = () => {
           </Select>
         </FormControl>
 
-        {selectedSport && selectedSport.teamFormat === 'individuals' && (
+        {selectedSport && selectedSport.sportParent.playerFormat === 'freeForAllSmall' && selectedSport.sportParent.scoringFormat === 'simpleScore' && (
           <IndividualComp
             selectedSport={selectedSport}
             leagueMembers={[
@@ -149,7 +149,7 @@ const RecordGame: React.FC = () => {
         
         )}
 
-        {selectedSport?.numberOfTeams === 2 && typeof selectedSport?.playersPerTeam === 'number' && selectedSport.playersPerTeam <= 5 && (
+        {selectedSport?.sportParent.playerFormat === 'smallTeam' &&  (
           logValue(selectedSport),
           <SmallTeam
             selectedSport={selectedSport}
@@ -168,7 +168,7 @@ const RecordGame: React.FC = () => {
         )}
 
         {/* Score Inputs */}
-        {selectedSport?.numberOfTeams === 2 && selectedSport?.useRounds && typeof selectedSport?.playersPerTeam === 'number' && players.length > 0 && leagueId && (
+        {selectedSport?.sportParent.scoringFormat === 'roundWins' && leagueId && (
           <RoundBased
             selectedSport={selectedSport}
             players={players}

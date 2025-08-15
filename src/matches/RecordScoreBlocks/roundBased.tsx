@@ -12,6 +12,7 @@ import { Timestamp } from 'firebase/firestore';
 import { collection, addDoc} from 'firebase/firestore';
 import { db } from '../../Backend/firebase';
 import { useAuth } from '../../Backend/AuthProvider';
+import { usePlayerStats } from '../../hooks/usePlayerStats';
 
 // Define a type for players (adjust as needed based on your user structure)
 
@@ -32,6 +33,7 @@ const RoundBased: React.FC<RoundBasedProps> = ({ selectedSport, players, leagueI
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const user = useAuth().user;
+  const { updateMatchStats } = usePlayerStats();
 
 
   const [teamScores, setTeamScores] = useState<{ [roundId: string]: { team1: number; team2: number } }>({
@@ -225,8 +227,17 @@ const [roundPlayerStats, setRoundPlayerStats] = useState<{
         gameStats: gameStats
       };
 
-      // Save to Firestore
-      await addDoc(collection(db, 'matches'), match);
+      // Save to Firestore as subcollection within the sport
+      await addDoc(collection(db, 'leagues', leagueId, 'sports', selectedSport.id, 'matches'), match);
+      
+      // Update player statistics
+      try {
+        await updateMatchStats(match);
+        console.log('Player stats updated successfully');
+      } catch (statsError) {
+        console.error('Failed to update player stats:', statsError);
+        // Don't fail the entire operation if stats update fails
+      }
       
       setSuccess('Match recorded successfully!');
       

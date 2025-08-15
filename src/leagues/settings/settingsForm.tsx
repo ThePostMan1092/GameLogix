@@ -1,7 +1,7 @@
 import { useState, useEffect} from 'react';
 import {
   Dialog, DialogTitle, DialogContent, DialogActions, MenuItem, Select, Switch, Box, Typography, Grid,
-  ToggleButton, ToggleButtonGroup, Accordion, AccordionSummary, AccordionDetails, Checkbox
+  ToggleButton, ToggleButtonGroup, Accordion, AccordionSummary, AccordionDetails, Checkbox, Paper
 } from '@mui/material';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
@@ -10,7 +10,7 @@ import RadioGroup from '@mui/material/RadioGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import FormLabel from '@mui/material/FormLabel';
 import FormControl from '@mui/material/FormControl';
-import { type Sport, sportParent } from '../../types/sports.ts'; 
+import { type Sport} from '../../types/sports.ts'; 
 import sports from '../../types/sports.ts'; // Import the default export
 import { collection, addDoc, updateDoc, doc } from 'firebase/firestore';
 import { db } from '../../Backend/firebase';
@@ -44,6 +44,25 @@ export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded
   const [sport, setSport] = useState<Sport | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [editingStat, setEditingStat] = useState(false);
+  const [editingStatIndex, setEditingStatIndex] = useState<number | null>(null);
+  // Tiebreaker configuration state
+  const [tiebreakerStats, setTiebreakerStats] = useState<{ statName: string, tiebreakerValue: number }[]>([]);
+  const [tiebreakerDialogOpen, setTiebreakerDialogOpen] = useState(false);
+  const [tiebreakerOrder, setTiebreakerOrder] = useState<{
+    statName: string;
+    higherIsBetter: boolean;
+    order: number;
+  }[]>([]);
+
+  const calculateTiebreakerValues = (tiebreakers: { statName: string; higherIsBetter: boolean; order: number }[]) => {
+    return tiebreakers.map(tb => ({
+      statName: tb.statName,
+      tiebreakerValue: tb.higherIsBetter ? 
+        Math.pow(0.1, tb.order) :  // Positive: 0.1, 0.01, 0.001, etc.
+        -Math.pow(0.1, tb.order)   // Negative: -0.1, -0.01, -0.001, etc.
+    }));
+  };
 
   const openSavedSport = (savedSport: Sport) => {
     setSport(savedSport);
@@ -62,7 +81,7 @@ export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded
       winCondition: savedSport.winCondition || '',
       winPoints: savedSport.winPoints ?? '',
       winRounds: savedSport.winRounds ?? '',
-      canTie: savedSport.canTie ?? false,
+      cannotTie: savedSport.cannotTie ?? false,
       winBy: savedSport.winBy || '',
       playStyle: savedSport.playStyle || '',
       customStats: savedSport.customStats ? savedSport.customStats : [],
@@ -70,6 +89,18 @@ export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded
       adjustable: savedSport.adjustable ?? true,
       // Add any other fields you need to support editing
     });
+    // Set tiebreaker stats and convert to order format
+    setTiebreakerStats(savedSport.tiebreakerStats || []);
+    if (savedSport.tiebreakerStats && savedSport.tiebreakerStats.length > 0) {
+      const order = savedSport.tiebreakerStats.map((tb, index) => ({
+        statName: tb.statName,
+        higherIsBetter: tb.tiebreakerValue > 0,
+        order: index + 1
+      }));
+      setTiebreakerOrder(order);
+    } else {
+      setTiebreakerOrder([]);
+    }
     setStep(0); // Optionally reset to first step
   };
 
@@ -81,11 +112,16 @@ export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded
       // Reset form for new sport
       setFormData({});
       setSport(null);
+      setTiebreakerStats([]);
+      setTiebreakerOrder([]);
       setStep(0);
     }
   }, [open, editingSport]);
 
   const handleChange = (field: string, value: any) => {
+    if (field === 'tiebreakerStats') {
+      setTiebreakerStats(value);
+    }
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -98,13 +134,31 @@ export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded
     if (selectedValue === 'custom') {
       // Reset to empty sport for custom configuration
       setSport(null);
-      setFormData({});
+      setTiebreakerStats([]);
+      setTiebreakerOrder([]);
+      setFormData({
+        name: 'Custom Sport',
+        sportParent: 'Custom',
+        adjustable: true,
+      });
     } else {
       // Find the predefined sport from sports.ts
       const predefinedSport = sports.find((s: Sport) => s.name === selectedValue);
       if (predefinedSport) {
         setSport(predefinedSport);
         console.log('Selected sport:', predefinedSport);
+        // Set tiebreaker stats from predefined sport and convert to order format
+        setTiebreakerStats(predefinedSport.tiebreakerStats || []);
+        if (predefinedSport.tiebreakerStats && predefinedSport.tiebreakerStats.length > 0) {
+          const order = predefinedSport.tiebreakerStats.map((tb, index) => ({
+            statName: tb.statName,
+            higherIsBetter: tb.tiebreakerValue > 0,
+            order: index + 1
+          }));
+          setTiebreakerOrder(order);
+        } else {
+          setTiebreakerOrder([]);
+        }
         // Pre-populate form data with the sport's preset configuration
         setFormData({
             name: predefinedSport.name || '',
@@ -122,7 +176,7 @@ export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded
             winCondition: predefinedSport.winCondition || '',
             winPoints: predefinedSport.winPoints ?? '',
             winRounds: predefinedSport.winRounds ?? '',            
-            canTie: predefinedSport.canTie ?? false,
+            cannotTie: predefinedSport.cannotTie ?? false,
             winBy: predefinedSport.winBy || '',
             playStyle: predefinedSport.playStyle || '',
             customStats: predefinedSport.customStats ? predefinedSport.customStats : [],
@@ -135,6 +189,67 @@ export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded
 
   const next = () => setStep(prev => Math.min(prev + 1, steps.length - 1));
   const back = () => setStep(prev => Math.max(prev - 1, 0));
+
+  const handleEditStat = (index: number) => {
+    const stat = ((formData as any).customStats || [])[index];
+    setEditingStat(true);
+    setEditingStatIndex(index);
+    
+    // Populate the form with the stat's current values
+    handleChange('newStatName', stat.name);
+    handleChange('newStatDataType', stat.dataType);
+    // Removed unit reference
+    handleChange('newStatDescription', stat.description || '');
+    handleChange('affectsScore', stat.affectsScore || false);
+    handleChange('pointValue', stat.pointValue ?? 1);
+    
+    if (stat.dataType === 'number') {
+      handleChange('newStatMin', stat.minValue || '');
+      handleChange('newStatMax', stat.maxValue || '');
+      handleChange('newStatDefault', stat.defaultValue || '');
+      handleChange('newStatDecimals', stat.decimalPlaces || 0);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingStat(false);
+    setEditingStatIndex(null);
+    
+    // Clear the form
+    handleChange('newStatName', '');
+    handleChange('newStatDataType', '');
+    // Removed unit reference
+    handleChange('newStatDescription', '');
+    handleChange('newStatMin', '');
+    handleChange('newStatMax', '');
+    handleChange('newStatDefault', '');
+    handleChange('newStatDecimals', '0');
+    handleChange('affectsScore', false);
+    handleChange('pointValue', 1);
+  };
+
+  const handleSaveStatEdit = () => {
+    const newStat = {
+      name: (formData as any).newStatName,
+      dataType: (formData as any).newStatDataType,
+      description: (formData as any).newStatDescription || null,
+      minValue: (formData as any).newStatMin ? Number((formData as any).newStatMin) : null,
+      maxValue: (formData as any).newStatMax ? Number((formData as any).newStatMax) : null,
+      defaultValue: (formData as any).newStatDefault || null,
+      decimalPlaces: (formData as any).newStatDecimals ? Number((formData as any).newStatDecimals) : 0,
+      affectsScore: (formData as any).affectsScore || false,
+      pointValue: (formData as any).pointValue ? Number((formData as any).pointValue) : 1
+    };
+    
+    const existingStats = [...((formData as any).customStats || [])];
+    if (editingStatIndex !== null) {
+      existingStats[editingStatIndex] = newStat;
+    }
+    handleChange('customStats', existingStats);
+    
+    // Reset editing state and clear form
+    handleCancelEdit();
+  };
 
   const handleSubmit = async () => {
     if (!currentLeagueId || !user || !formData) {
@@ -160,14 +275,15 @@ export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded
         roundsName: (formData as any).roundsName || 'Round',
         trackPerRound: (formData as any).trackPerRound === true,
         winCondition: (formData as any).winCondition || 'First to point limit',
-        canTie: (formData as any).canTie === true,
+        cannotTie: (formData as any).cannotTie === true,
         playStyle: (formData as any).playStyle || 'simultaneous',
         customStats: (formData as any).customStats || [],
         customSpecialRules: (formData as any).customSpecialRules || [],
         isActive: true,
         createdAt: new Date(),
         createdBy: user.uid,
-        adjustable: (formData as any).adjustable === true
+        adjustable: (formData as any).adjustable === true,
+        tiebreakerStats,
       };
 
       // Only add optional fields if they have valid values
@@ -236,8 +352,7 @@ export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded
             <FormControl fullWidth margin="normal">
               <FormLabel>Select Game to add</FormLabel>
               <Select
-                sx={{ mb: 1 }}
-                value={sport?.name || ''}
+                value={sport?.name || (formData as any).name || ''}
                 onChange={handleSportSelection}
               >
                 {sports.map((sport: Sport) => (
@@ -248,21 +363,6 @@ export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded
                 <MenuItem key="add-custom" value="custom">
                   Add Custom Game
                 </MenuItem>
-              </Select>
-            </FormControl>
-
-            <FormControl fullWidth margin="normal">
-              <FormLabel>Select Game Parent</FormLabel>
-              <Select
-                value={(formData as any).sportParent || ''}
-                onChange={e => handleChange('sportParent', e.target.value)}
-                fullWidth
-              >
-                {(Array.isArray(sportParent) ? sportParent : []).map((Parent: string) => (
-                  <MenuItem key={Parent} value={Parent}>
-                    {Parent}
-                  </MenuItem>
-                ))} 
               </Select>
             </FormControl>
 
@@ -342,9 +442,7 @@ export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded
             <FormControl fullWidth margin="normal">
               <FormLabel>Round information</FormLabel>
               <Box display="flex" justifyContent="space-between" alignItems="center" gap={2} px={3}>
-                <Typography variant="body1">
-                  Are there rounds?
-                </Typography>
+                <Typography variant="body1">Are there rounds?</Typography>
                 <Switch
                   checked={(formData as any).useRounds}
                   onChange={e => handleChange('useRounds', e.target.checked)}
@@ -428,28 +526,159 @@ export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded
                     )}
                 </Grid>
                 <Box display="flex" justifyContent="space-between" alignItems="center" gap={2} px={0}>
-                    <Typography variant="body1">
-                        Do not allow ties
-                    </Typography>
+                    <Typography variant="body1">Do not allow ties</Typography>
                     <Switch
-                    checked={(formData as any).canTie || false}
-                    onChange={e => handleChange('canTie', e.target.checked)}
+                    checked={(formData as any).cannotTie || false}
+                    onChange={e => handleChange('cannotTie', e.target.checked)}
                     />
                 </Box>
-                { (formData as any).canTie && (
-                    <Grid container gap={1} mt={.5} px={0}>
-                        <Grid size={12}>
-                            <TextField
-                                fullWidth
-                                size="small"
-                                label="Win by required amount? (optional)"
-                                type="text"
-                                value={(formData as any).winByAmount || ''}
-                                onChange={e => handleChange('winByAmount', e.target.value)}
-                            />
-                        </Grid>
-                    </Grid>
+
+                {/* Tiebreaker configuration if ties are not allowed */}
+                {(formData as any).cannotTie && (
+                  <Paper sx={{ mt: 2, p: 2, border: '1px solid #ccc', borderRadius: 2}}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                      <Typography variant="subtitle2">Configure Tiebreakers</Typography>
+                      <Button 
+                        variant="outlined" 
+                        size="small"
+                        onClick={() => setTiebreakerDialogOpen(true)}
+                        disabled={!(formData as any).customStats || (formData as any).customStats.filter((stat: any) => !stat.affectsScore).length === 0}
+                      >
+                        Add Tiebreaker
+                      </Button>
+                    </Box>
+                    
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                      If players are tied on the main win condition, these stats will be used as tiebreakers in order of priority.
+                    </Typography>
+                    
+                    {tiebreakerOrder.length > 0 ? (
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                        {tiebreakerOrder
+                          .sort((a, b) => a.order - b.order)
+                          .map((tiebreaker, index) => (
+                          <Box key={tiebreaker.statName} sx={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            gap: 2, 
+                            p: 1, 
+                            bgcolor: '#47514d', 
+                            borderRadius: 1 
+                          }}>
+                            <Typography variant="body2" sx={{ minWidth: 30, fontWeight: 'bold' }}>
+                              #{index + 1}
+                            </Typography>
+                            <Typography variant="body2" sx={{ flex: 1 }}>
+                              {tiebreaker.statName}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary" sx={{ minWidth: 100 }}>
+                              {tiebreaker.higherIsBetter ? 'Higher is better' : 'Lower is better'}
+                            </Typography>
+                            <Button 
+                              size="small" 
+                              color="error"
+                              onClick={() => {
+                                const updated = tiebreakerOrder.filter(tb => tb.statName !== tiebreaker.statName);
+                                // Reorder remaining tiebreakers
+                                const reordered = updated.map((tb, idx) => ({ ...tb, order: idx + 1 }));
+                                setTiebreakerOrder(reordered);
+                                handleChange('tiebreakerStats', calculateTiebreakerValues(reordered));
+                              }}
+                            >
+                              Remove
+                            </Button>
+                          </Box>
+                        ))}
+                      </Box>
+                    ) : (
+                      <Typography variant="body2" color="text.secondary">
+                        No tiebreakers configured. Click "Add Tiebreaker" to set up tie-breaking rules.
+                      </Typography>
+                    )}
+                  </Paper>
                 )}
+
+                {/* Tiebreaker Configuration Dialog */}
+                <Dialog 
+                  open={tiebreakerDialogOpen} 
+                  onClose={() => setTiebreakerDialogOpen(false)}
+                  maxWidth="sm" 
+                  fullWidth
+                >
+                  <DialogTitle>Add Tiebreaker</DialogTitle>
+                  <DialogContent>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                      Select a stat to use as a tiebreaker and specify whether higher or lower values are better.
+                    </Typography>
+                    
+                    {(formData as any).customStats && (formData as any).customStats
+                      .filter((stat: any) => !stat.affectsScore && !tiebreakerOrder.find(tb => tb.statName === stat.name))
+                      .map((stat: any) => (
+                      <Box key={stat.name} sx={{ 
+                        border: 1, 
+                        borderColor: 'grey.300', 
+                        borderRadius: 1, 
+                        p: 2, 
+                        mb: 2,
+                        cursor: 'pointer',
+                        '&:hover': { bgcolor: 'grey.50' }
+                      }}>
+                        <Typography variant="subtitle2" gutterBottom>{stat.name}</Typography>
+                        {stat.description && (
+                          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                            {stat.description}
+                          </Typography>
+                        )}
+                        
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            onClick={() => {
+                              const newTiebreaker = {
+                                statName: stat.name,
+                                higherIsBetter: false,
+                                order: tiebreakerOrder.length + 1
+                              };
+                              const updated = [...tiebreakerOrder, newTiebreaker];
+                              setTiebreakerOrder(updated);
+                              handleChange('tiebreakerStats', calculateTiebreakerValues(updated));
+                              setTiebreakerDialogOpen(false);
+                            }}
+                          >
+                            Lower is Better
+                          </Button>
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            onClick={() => {
+                              const newTiebreaker = {
+                                statName: stat.name,
+                                higherIsBetter: true,
+                                order: tiebreakerOrder.length + 1
+                              };
+                              const updated = [...tiebreakerOrder, newTiebreaker];
+                              setTiebreakerOrder(updated);
+                              handleChange('tiebreakerStats', calculateTiebreakerValues(updated));
+                              setTiebreakerDialogOpen(false);
+                            }}
+                          >
+                            Higher is Better
+                          </Button>
+                        </Box>
+                      </Box>
+                    ))}
+                    
+                    {!(formData as any).customStats || (formData as any).customStats.filter((stat: any) => !stat.affectsScore && !tiebreakerOrder.find(tb => tb.statName === stat.name)).length === 0 && (
+                      <Typography variant="body2" color="text.secondary">
+                        No additional stats available for tiebreakers. Add more non-scoring stats first.
+                      </Typography>
+                    )}
+                  </DialogContent>
+                  <DialogActions>
+                    <Button onClick={() => setTiebreakerDialogOpen(false)}>Cancel</Button>
+                  </DialogActions>
+                </Dialog>
             </Box>
           </>
         );
@@ -497,9 +726,11 @@ export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded
               Define Stats to Track
             </Typography>
 
-            {/* Add new stat form */}
+            {/* Add/Edit stat form */}
             <Box sx={{ border: 1, borderColor: 'grey.400', borderRadius: 1, p: 2, backgroundColor: 'grey.50' }}>
-              <Typography variant="subtitle1" gutterBottom>Add New Stat</Typography>
+              <Typography variant="subtitle1" gutterBottom>
+                {editingStat ? 'Edit Stat' : 'Add New Stat'}
+              </Typography>
               <Grid container spacing={2} alignItems="center">
                 <Grid size={6}>
                   <TextField
@@ -531,23 +762,25 @@ export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded
                   <FormControlLabel
                     control={
                       <Checkbox
-                        checked={(formData as any).mainScore || false}
-                        onChange={e => handleChange('mainScore', e.target.checked)}
+                        checked={(formData as any).affectsScore || false}
+                        onChange={e => handleChange('affectsScore', e.target.checked)}
                       />
                     }
-                    label="Points"
+                    label="Affects Score"
                   />
                 </Grid>
-                <Grid size={3}>
-                  <TextField
-                    fullWidth
-                    size="small"
-                    label="Unit (optional)"
-                    placeholder="points, goals, seconds"
-                    value={(formData as any).newStatUnit || ''}
-                    onChange={e => handleChange('newStatUnit', e.target.value)}
-                  />
-                </Grid>
+                { (formData as any).affectsScore && (
+                  <Grid size={3}>
+                    <TextField
+                      fullWidth
+                      size="small"
+                      label="Point Value"
+                      type="number"
+                      value={(formData as any).pointValue || 1}
+                      onChange={e => handleChange('pointValue', e.target.value)}
+                    />
+                  </Grid>
+                )}
                 <Grid size={7}>
                   <TextField
                     fullWidth
@@ -605,22 +838,22 @@ export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded
                   </>
                 )}
 
-                <Grid size={12}>
+                <Grid size={editingStat ? 6 : 12}>
                   <Button
                     variant="contained"
                     fullWidth
                     disabled={!(formData as any).newStatName || !(formData as any).newStatDataType}
-                    onClick={() => {
+                    onClick={editingStat ? handleSaveStatEdit : () => {
                       const newStat = {
                         name: (formData as any).newStatName,
                         dataType: (formData as any).newStatDataType,
-                        unit: (formData as any).newStatUnit || null,
                         description: (formData as any).newStatDescription || null,
                         minValue: (formData as any).newStatMin ? Number((formData as any).newStatMin) : null,
                         maxValue: (formData as any).newStatMax ? Number((formData as any).newStatMax) : null,
                         defaultValue: (formData as any).newStatDefault || null,
                         decimalPlaces: (formData as any).newStatDecimals ? Number((formData as any).newStatDecimals) : 0,
-                        affectsScore: (formData as any).mainScore || false
+                        affectsScore: (formData as any).affectsScore || false,
+                        pointValue: (formData as any).pointValue ? Number((formData as any).pointValue) : 1
                       };
                       
                       const existingStats = (formData as any).customStats || [];
@@ -629,17 +862,30 @@ export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded
                       // Clear form
                       handleChange('newStatName', '');
                       handleChange('newStatDataType', '');
-                      handleChange('newStatUnit', '');
+                      // Removed unit reference
                       handleChange('newStatDescription', '');
                       handleChange('newStatMin', '');
                       handleChange('newStatMax', '');
                       handleChange('newStatDefault', '');
                       handleChange('newStatDecimals', '0');
+                      handleChange('affectsScore', false);
+                      handleChange('pointValue', 1);
                     }}
                   >
-                    Add Stat
+                    {editingStat ? 'Save Changes' : 'Add Stat'}
                   </Button>
                 </Grid>
+                {editingStat && (
+                  <Grid size={6}>
+                    <Button
+                      variant="outlined"
+                      fullWidth
+                      onClick={handleCancelEdit}
+                    >
+                      Cancel Edit
+                    </Button>
+                  </Grid>
+                )}
               </Grid>
             {/* Display existing stats as accordions */}
             {((formData as any).customStats || []).map((stat: any, index: number) => (
@@ -653,12 +899,15 @@ export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded
                       <Grid size={6}>
                         <Typography variant="body2"><strong>Type:</strong> {stat.dataType}</Typography>
                       </Grid>
-                      <Grid size={3}>
-                        <Typography variant="body2"><strong>Unit:</strong> {stat.unit || 'N/A'}</Typography>
-                      </Grid>
+                      {/* Removed unit display */}
                        <Grid size={3}>
                         <Typography variant="body2"><strong>Affects Score:</strong> {stat.affectsScore ? 'Yes' : 'No'}</Typography>
                       </Grid>
+                      { stat.affectsScore && (
+                        <Grid size={3}>
+                          <Typography variant="body2"><strong>Point Value:</strong> {stat.pointValue ?? 1}</Typography>
+                        </Grid>
+                      )} 
                       <Grid size={12}>
                         <Typography variant="body2"><strong>Description:</strong> {stat.description || 'No description'}</Typography>
                       </Grid>
@@ -678,7 +927,15 @@ export default function SportSetupDialog({ open, onClose, leagueId, onSportAdded
                           </Grid>
                         </>
                       )}
-                      <Grid size={12}>
+                      <Grid size={6}>
+                        <Button 
+                          size="small" 
+                          color="primary"
+                          onClick={() => handleEditStat(index)}
+                          sx={{ mr: 1 }}
+                        >
+                          Edit
+                        </Button>
                         <Button 
                           size="small" 
                           color="error"

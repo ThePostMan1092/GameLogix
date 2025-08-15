@@ -1,4 +1,10 @@
-export const sportParent = ['Ping Pong', 'Basketball', 'Bowling', 'Spikeball', 'Ten'] as const;
+export interface SportParent {
+  name: 'Ping Pong' | 'Basketball' | 'Bowling' | 'Spikeball' | 'Ten' | 'Custom' | 'Pickleball';
+  playerFormat: 'solo' | 'duel' | 'smallTeam' | 'mediumTeam' | 'largeTeam' | 'freeForAllSmall' | 'freeForAllLarge' | 
+  'relayTeam' | 'multiPair' | 'groupIndividual';
+  scoringFormat: 'totalFewRounds' | 'totalManyRounds' | 'roundWins' | 'timeBest' | 'timeLongest' | 'timeAverage' |
+  'accuracyScore' | 'distanceLongest' | 'distanceShortest' | 'elimination' | 'simpleScore';
+}
 
 export const scoringTypes = [
   {type: 'solo competition round based', sports: ['Bowling', 'Golf', 'poker' ]},
@@ -12,7 +18,6 @@ export const scoringTypes = [
 export interface CustomStat {
   name: string;
   dataType: 'number' | 'time' | 'boolean' | 'text' | 'counter';
-  unit?: string | null;
   description?: string | null;
   minValue?: number | null;
   maxValue?: number | null;
@@ -29,7 +34,7 @@ export interface SpecialRule {
 
 export interface Sport {
   id: string;
-  sportParent: typeof sportParent[number]; // restrict to allowed categories
+  sportParent: SportParent; // restrict to allowed categories
   name: string;
   description?: string;
   gameType: 'solo' | 'competition';
@@ -46,12 +51,13 @@ export interface Sport {
   winCondition: 'First to point limit' | 'First to round limit' | 'Most points';
   winPoints?: number;
   winRounds?: number;
-  canTie: boolean;
+  cannotTie: boolean;
   winBy?: number; 
   playStyle?: 'turn-based' | 'simultaneous';
   activeTrack: boolean;
   customStats?: CustomStat[]; // New structured stats
   customSpecialRules?: SpecialRule[]; // New structured special rules
+  tiebreakerStats?: { statName: string; tiebreakerValue: number }[]; // Tiebreaker configuration for when ties are not allowed
   createdAt: Date;
   createdBy: string; // user ID
   adjustable: boolean;
@@ -70,7 +76,7 @@ const basketballFullTeam: Sport = {
   roundsName: 'quarters',
   maxRounds: 4,
   winCondition: 'Most points',
-  canTie: false,
+  cannotTie: true,
   playStyle: 'simultaneous',
   trackByPlayer: false,
   activeTrack: false,
@@ -78,7 +84,6 @@ const basketballFullTeam: Sport = {
     {
       name: 'Two-Pointers',
       dataType: 'counter',
-      unit: 'points',
       minValue: 0,
       affectsScore: true,
       pointValue: 2
@@ -86,7 +91,6 @@ const basketballFullTeam: Sport = {
     {
       name: 'Three-Pointers',
       dataType: 'counter',
-      unit: 'points',
       minValue: 0,
       affectsScore: true,
       pointValue: 3
@@ -94,7 +98,6 @@ const basketballFullTeam: Sport = {
     {
       name: 'Fouls',
       dataType: 'counter',
-      unit: 'fouls',
       description: 'Team fouls committed',
       defaultValue: 0,
       affectsScore: false
@@ -111,10 +114,16 @@ const basketballFullTeam: Sport = {
       description: 'Shots beyond the arc count for 3 points'
     }
   ],
+  tiebreakerStats: [
+    {
+      statName: 'Fouls',
+      tiebreakerValue: -0.01 // Fewer fouls win ties
+    }
+  ],
   createdAt: new Date(),
   createdBy: 'user123',
   adjustable: true,
-  sportParent: 'Basketball'
+  sportParent: {name: 'Basketball', playerFormat: 'largeTeam', scoringFormat: 'totalManyRounds'}
 }
 
 const pingPongDoubles: Sport = {
@@ -132,7 +141,7 @@ const pingPongDoubles: Sport = {
   winCondition: 'First to round limit',
   winPoints: 21,
   winRounds: 2,
-  canTie: false,
+  cannotTie: false,
   winBy: 2,
   playStyle: 'simultaneous',
   trackByPlayer: false,
@@ -141,7 +150,6 @@ const pingPongDoubles: Sport = {
     {
       name: 'Points',
       dataType: 'number',
-      unit: 'points',
       description: 'Points scored in the set',
       minValue: 0,
       maxValue: 21,
@@ -152,7 +160,6 @@ const pingPongDoubles: Sport = {
     {
       name: 'Aces',
       dataType: 'number',
-      unit: 'aces',
       description: 'Unreturnable serves',
       defaultValue: 0,
       affectsScore: false
@@ -171,7 +178,7 @@ const pingPongDoubles: Sport = {
   createdAt: new Date(),
   createdBy: 'user123',
   adjustable: true,
-  sportParent: 'Ping Pong'
+  sportParent: {name: 'Ping Pong', playerFormat: 'smallTeam', scoringFormat: 'totalManyRounds'}
 }
 
 const bowlingSolo: Sport = {
@@ -185,7 +192,7 @@ const bowlingSolo: Sport = {
   roundsName: 'frames',
   maxRounds: 10,
   winCondition: 'Most points',
-  canTie: false,
+  cannotTie: false,
   playStyle: 'turn-based',
   trackByPlayer: true,
   activeTrack: false,
@@ -193,7 +200,6 @@ const bowlingSolo: Sport = {
     {
       name: 'Score',
       dataType: 'number',
-      unit: 'points',
       description: 'Total bowling score',
       minValue: 0,
       maxValue: 300,
@@ -204,7 +210,6 @@ const bowlingSolo: Sport = {
     {
       name: 'Strikes',
       dataType: 'counter',
-      unit: 'strikes',
       description: 'Number of strikes bowled',
       defaultValue: 0,
       affectsScore: false
@@ -212,7 +217,6 @@ const bowlingSolo: Sport = {
     {
       name: 'Spares',
       dataType: 'counter',
-      unit: 'spares', 
       description: 'Number of spares bowled',
       defaultValue: 0,
       affectsScore: false
@@ -235,7 +239,7 @@ const bowlingSolo: Sport = {
   createdAt: new Date(),
   createdBy: 'user123',
   adjustable: true,
-  sportParent: 'Bowling'
+  sportParent: {name: 'Bowling', playerFormat: 'freeForAllSmall', scoringFormat: 'totalManyRounds'}
 }
 
 const pickleballDoubles: Sport = {
@@ -249,7 +253,7 @@ const pickleballDoubles: Sport = {
   roundsName: 'Sets',
   maxRounds: 3,
   winCondition: 'First to round limit',
-  canTie: false,
+  cannotTie: false,
   winBy: 2,
   playStyle: 'turn-based',
   trackByPlayer: false,
@@ -258,7 +262,6 @@ const pickleballDoubles: Sport = {
     {
       name: 'Score',
       dataType: 'number',
-      unit: 'points',
       description: '',
       minValue: 0,
       maxValue: 21,
@@ -269,7 +272,6 @@ const pickleballDoubles: Sport = {
     {
       name: 'Aces',
       dataType: 'counter',
-      unit: 'aces',
       description: 'Number of aces served',
       defaultValue: 0,
       decimalPlaces: 0,
@@ -281,11 +283,76 @@ const pickleballDoubles: Sport = {
   createdAt: new Date(),
   createdBy: 'user123',
   adjustable: true,
-  sportParent: 'Bowling'
+  sportParent: {name: 'Pickleball', playerFormat: 'freeForAllSmall', scoringFormat: 'totalManyRounds'}
+}
+
+const tenGame: Sport = {
+  id: 'ten-game-uuid',
+  name: 'Ten',
+  gameType: 'competition',
+  teamFormat: 'individuals',
+  playerLayout: 'manyIndividuals',
+  recordLayout: 'cards',
+  numberOfTeams: 4,
+  playersPerTeam: 1,
+  useRounds: false,
+  winCondition: 'First to point limit',
+  winPoints: 10,
+  cannotTie: true,
+  playStyle: 'turn-based',
+  trackByPlayer: true,
+  activeTrack: false,
+  customStats: [
+    {
+      name: 'Points',
+      dataType: 'number',
+      description: 'Main game points',
+      minValue: 0,
+      maxValue: 10,
+      defaultValue: 0,
+      decimalPlaces: 0,
+      affectsScore: true,
+      pointValue: 1
+    },
+    {
+      name: 'Extra Cards',
+      dataType: 'counter',
+      description: 'Additional cards taken',
+      defaultValue: 0,
+      affectsScore: false
+    },
+    {
+      name: 'Extra Points',
+      dataType: 'counter',
+      description: 'Bonus points earned',
+      defaultValue: 0,
+      affectsScore: false
+    }
+  ],
+  customSpecialRules: [
+    {
+      name: 'Tiebreaker Rules',
+      description: 'If points tie, player with fewer extra cards wins. If that ties, player with most extra points wins.'
+    }
+  ],
+  tiebreakerStats: [
+    {
+      statName: 'Extra Cards',
+      tiebreakerValue: -0.01 // Fewer extra cards win ties (first tiebreaker)
+    },
+    {
+      statName: 'Extra Points',
+      tiebreakerValue: 0.001 // More extra points win ties (second tiebreaker)
+    }
+  ],
+  createdAt: new Date(),
+  createdBy: 'user123',
+  adjustable: true,
+  sportParent: {name: 'Ten', playerFormat: 'freeForAllSmall', scoringFormat: 'simpleScore'}
 }
 
 
 
-const sports: Sport[] = [basketballFullTeam, pingPongDoubles, bowlingSolo, pickleballDoubles];
+const sports: Sport[] = [basketballFullTeam, pingPongDoubles, bowlingSolo, pickleballDoubles, tenGame];
 
 export default sports;

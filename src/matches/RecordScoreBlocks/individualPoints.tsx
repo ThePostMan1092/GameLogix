@@ -10,6 +10,7 @@ import { Timestamp } from 'firebase/firestore';
 import { collection, addDoc } from 'firebase/firestore';
 import { db } from '../../Backend/firebase';
 import { useAuth } from '../../Backend/AuthProvider';
+import { usePlayerStats } from '../../hooks/usePlayerStats';
 
 interface IndividualPointsProps {
   selectedSport: Sport;
@@ -25,6 +26,7 @@ const IndividualPoints: React.FC<IndividualPointsProps> = ({
   onSuccess 
 }) => {
   const { user } = useAuth();
+  const { updateMatchStats } = usePlayerStats();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -37,6 +39,17 @@ const IndividualPoints: React.FC<IndividualPointsProps> = ({
 
   // Initialize scores and stats for all players
   useEffect(() => {
+    console.log('=== INITIALIZING INDIVIDUAL POINTS ===');
+    console.log('Selected sport FULL OBJECT:', JSON.stringify(selectedSport, null, 2));
+    console.log('Sport name:', selectedSport.name);
+    console.log('Sport cannotTie property exists:', 'cannotTie' in selectedSport);
+    console.log('Sport cannotTie value:', selectedSport.cannotTie);
+    console.log('Sport cannotTie type:', typeof selectedSport.cannotTie);
+    console.log('Sport tiebreaker stats:', selectedSport.tiebreakerStats);
+    console.log('Sport tiebreaker stats exists:', 'tiebreakerStats' in selectedSport);
+    console.log('Sport id:', selectedSport.id);
+    console.log('Players:', players);
+    
     const initialScores: { [playerId: string]: number } = {};
     const initialStats: { [playerId: string]: { [statName: string]: string | number } } = {};
     
@@ -48,33 +61,36 @@ const IndividualPoints: React.FC<IndividualPointsProps> = ({
         // Initialize custom stats if any
         selectedSport.customStats?.forEach(stat => {
           initialStats[player.playerId][stat.name] = stat.dataType === 'number' ? 0 : '';
+          console.log(`Initialized stat ${stat.name} for player ${player.playerId}: ${initialStats[player.playerId][stat.name]}`);
         });
       }
     });
     
     setPlayerScores(initialScores);
     setPlayerStats(initialStats);
+    console.log('Initial scores:', initialScores);
+    console.log('Initial stats:', initialStats);
   }, [players, selectedSport]);
-
-  const handleScoreChange = (playerId: string, score: number) => {
-    setPlayerScores(prev => ({
-      ...prev,
-      [playerId]: score
-    }));
-  };
 
   const handleStatChange = (
     playerId: string,
     statName: string,
     value: string | number
   ) => {
-    setPlayerStats(prev => ({
-      ...prev,
-      [playerId]: {
-        ...prev[playerId],
-        [statName]: value,
-      },
-    }));
+    console.log(`=== STAT CHANGE ===`);
+    console.log(`Player: ${playerId}, Stat: ${statName}, New Value: ${value} (type: ${typeof value})`);
+    
+    setPlayerStats(prev => {
+      const updated = {
+        ...prev,
+        [playerId]: {
+          ...prev[playerId],
+          [statName]: value,
+        },
+      };
+      console.log(`Updated player stats for ${playerId}:`, updated[playerId]);
+      return updated;
+    });
   };
 
   const getScoreAffectingStats = () => {
@@ -86,26 +102,93 @@ const IndividualPoints: React.FC<IndividualPointsProps> = ({
   };
 
   const getPlayerDisplayScore = (playerId: string) => {
-    // Main score plus any score-affecting stats
-    const mainScore = playerScores[playerId] || 0;
+    console.log(`=== SCORING DEBUG for ${playerId} ===`);
+    
     const scoreAffectingStats = getScoreAffectingStats();
+    console.log(`Score affecting stats:`, scoreAffectingStats);
     
-    let totalScore = mainScore;
-    scoreAffectingStats.forEach(stat => {
-      const statValue = playerStats[playerId]?.[stat.name];
-      if (stat.dataType === 'number' && typeof statValue === 'number' && stat.pointValue) {
-        totalScore += statValue * stat.pointValue;
-      }
-    });
+    // If there are score-affecting custom stats, use only those. Otherwise, use the main score field.
+    let totalScore = 0;
     
+    if (scoreAffectingStats.length > 0) {
+      console.log(`Using custom stats for scoring (${scoreAffectingStats.length} stats)`);
+      scoreAffectingStats.forEach(stat => {
+        let statValue = playerStats[playerId]?.[stat.name];
+        console.log(`Processing score-affecting stat '${stat.name}': value=${statValue}, type=${typeof statValue}`);
+        
+        // Ensure statValue is a number
+        if (stat.dataType === 'number') {
+          statValue = typeof statValue === 'number' ? statValue : parseFloat(statValue) || 0;
+          const pointValue = typeof stat.pointValue === 'number' ? stat.pointValue : 1;
+          const contribution = statValue * pointValue;
+          totalScore += contribution;
+          console.log(`  -> ${stat.name}: ${statValue} × ${pointValue} = ${contribution} (total now: ${totalScore})`);
+        }
+      });
+    } else {
+      // Fallback to main score if no custom score-affecting stats
+      const mainScore = playerScores[playerId] || 0;
+      console.log(`Using main score field: ${mainScore}`);
+      totalScore = mainScore;
+    }
+
+    console.log(`Score after main stats: ${totalScore}`);
+    console.log(`Sport cannotTie: ${selectedSport.cannotTie}`);
+    console.log(`Sport tiebreakerStats:`, selectedSport.tiebreakerStats);
+
+    // Add tiebreaker adjustments if configured and ties are not allowed
+    // Handle legacy sports where cannotTie might be undefined but tiebreakerStats exist
+    const shouldApplyTiebreakers = (
+      selectedSport.cannotTie === true || 
+      (selectedSport.cannotTie === undefined && selectedSport.tiebreakerStats && selectedSport.tiebreakerStats.length > 0)
+    );
+
+    if (shouldApplyTiebreakers && selectedSport.tiebreakerStats && selectedSport.tiebreakerStats.length > 0) {
+      console.log(`Applying tiebreakers...`);
+      selectedSport.tiebreakerStats.forEach((tiebreaker, index) => {
+        const statValue = playerStats[playerId]?.[tiebreaker.statName];
+        console.log(`  Tiebreaker ${index + 1}: ${tiebreaker.statName}`);
+        console.log(`    Raw stat value: ${statValue} (type: ${typeof statValue})`);
+        console.log(`    Tiebreaker value: ${tiebreaker.tiebreakerValue}`);
+        
+        let numericStatValue = 0;
+        if (typeof statValue === 'number') {
+          numericStatValue = statValue;
+        } else if (typeof statValue === 'string' && !isNaN(parseFloat(statValue))) {
+          numericStatValue = parseFloat(statValue);
+        }
+        
+        const tiebreakerContribution = numericStatValue * tiebreaker.tiebreakerValue;
+        totalScore += tiebreakerContribution;
+        console.log(`    -> ${numericStatValue} × ${tiebreaker.tiebreakerValue} = ${tiebreakerContribution}`);
+        console.log(`    -> Total score now: ${totalScore}`);
+      });
+    } else {
+      console.log(`No tiebreakers applied (cannotTie: ${selectedSport.cannotTie}, shouldApplyTiebreakers: ${shouldApplyTiebreakers}, tiebreakerStats length: ${selectedSport.tiebreakerStats?.length || 0})`);
+    }
+
+    console.log(`=== FINAL SCORE for ${playerId}: ${totalScore} ===`);
     return totalScore;
   };
 
   const getPlayerRanking = () => {
-    return players
+    console.log('=== CALCULATING PLAYER RANKING ===');
+    const playersWithScores = players
       .filter(p => p.playerId)
-      .sort((a, b) => getPlayerDisplayScore(b.playerId) - getPlayerDisplayScore(a.playerId))
-      .map((player, index) => ({ ...player, rank: index + 1 }));
+      .map(player => {
+        const score = getPlayerDisplayScore(player.playerId);
+        console.log(`Player ${player.displayName} (${player.playerId}): score = ${score}`);
+        return { ...player, calculatedScore: score };
+      });
+    
+    const sorted = playersWithScores.sort((a, b) => {
+      console.log(`Comparing ${a.displayName} (${a.calculatedScore}) vs ${b.displayName} (${b.calculatedScore})`);
+      return b.calculatedScore - a.calculatedScore;
+    });
+    
+    const ranked = sorted.map((player, index) => ({ ...player, rank: index + 1 }));
+    console.log('Final ranking:', ranked.map(p => `#${p.rank}: ${p.displayName} (${p.calculatedScore})`));
+    return ranked;
   };
 
   const buildGameStats = (): GameStats => {
@@ -190,8 +273,23 @@ const IndividualPoints: React.FC<IndividualPointsProps> = ({
         gameStats
       };
 
-      const docRef = await addDoc(collection(db, 'matches'), matchData);
+      const docRef = await addDoc(collection(db, 'leagues', leagueId, 'sports', selectedSport.id, 'matches'), matchData);
       console.log('Match saved with ID:', docRef.id);
+      
+      // Create complete match object with ID for stats update
+      const completeMatchData: Match = {
+        ...matchData,
+        id: docRef.id
+      };
+      
+      // Update player statistics
+      try {
+        await updateMatchStats(completeMatchData);
+        console.log('Player stats updated successfully');
+      } catch (statsError) {
+        console.error('Failed to update player stats:', statsError);
+        // Don't fail the entire operation if stats update fails
+      }
       
       setSuccess('Match recorded successfully!');
       onSuccess?.();
@@ -211,10 +309,6 @@ const IndividualPoints: React.FC<IndividualPointsProps> = ({
       <Divider sx={{ mt: 3, mb: 2 }}>Score Recording</Divider>
       
       <Box sx={{ mt: 2, mb: 2 }}>
-        <Typography variant="h5" sx={{ mb: 2 }}>
-          Individual Competition Scoring
-        </Typography>
-        
         <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
           Record the final scores and stats for each player. Players will be ranked by their scores.
         </Typography>
@@ -233,7 +327,8 @@ const IndividualPoints: React.FC<IndividualPointsProps> = ({
 
         <Stack spacing={2}>
           {players.map((player, index) => (
-            <Accordion key={player.teamid} disabled={!player.playerId}>
+            <Accordion key={player.teamid} disabled={!player.playerId}
+              >
               <AccordionSummary
                 expandIcon={<ExpandMoreIcon />}
                 aria-controls={`player-${player.teamid}-content`}
@@ -260,18 +355,27 @@ const IndividualPoints: React.FC<IndividualPointsProps> = ({
                   </Box>
                   
                   <Box display="flex" alignItems="center" gap={2} sx={{ mr: 2 }}>
-                    {/* Display score-affecting stats in summary */}
-                    <TextField
-                      label="Score"
-                      type="number"
-                      value={playerScores[player.playerId] || 0}
-                      onChange={(e) => handleScoreChange(player.playerId, parseInt(e.target.value) || 0)}
-                      disabled={!player.playerId}
-                      size="small"
-                      sx={{ width: 100 }}
-                      inputProps={{ min: 0 }}
-                      onClick={(e) => e.stopPropagation()}
-                    />
+                    {/* Main score input - only show if no custom score-affecting stats */}
+                    {getScoreAffectingStats().length === 0 && (
+                      <TextField
+                        label="Score"
+                        type="number"
+                        value={playerScores[player.playerId] || 0}
+                        onChange={(e) => {
+                          const score = parseInt(e.target.value) || 0;
+                          console.log(`Main score change for ${player.playerId}: ${score}`);
+                          setPlayerScores(prev => ({
+                            ...prev,
+                            [player.playerId]: score
+                          }));
+                        }}
+                        disabled={!player.playerId}
+                        size="small"
+                        sx={{ width: 100 }}
+                        inputProps={{ min: 0 }}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    )}
                     
                     {getScoreAffectingStats().map((stat: CustomStat) => (
                       <TextField
